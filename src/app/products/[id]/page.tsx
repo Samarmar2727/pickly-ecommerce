@@ -1,122 +1,155 @@
-// src/app/products/[id]/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import Image from 'next/image';
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
-// تحديد نوع البيانات للمنتج
 interface ProductDetails {
-    _id: string;
-    title: string;
-    description: string;
-    imageCover: string;
-    price: number;
-    ratingsAverage: number;
-    category: {
-        name: string;
-    };
-    brand: {
-        name: string;
-    };
-    images: string[];
+  _id: string;
+  title: string;
+  description: string;
+  imageCover: string;
+  price: number;
+  ratingsAverage: number;
+  category: {
+    name: string;
+  };
+  brand: {
+    name: string;
+  };
+  images: string[];
 }
 
-// Props interface لـ page component
 interface ProductPageProps {
-    params: {
-        id: string;
-    };
+  params: {
+    id: string;
+  };
 }
 
 const ProductPage = ({ params }: ProductPageProps) => {
-    const [product, setProduct] = useState<ProductDetails | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [product, setProduct] = useState<ProductDetails | null>(null);
+  const [mainImage, setMainImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-    useEffect(() => {
-        const fetchProductDetails = async () => {
-            try {
-                // استخدام الـ ID من الـ URL لجلب بيانات منتج واحد
-                const response = await axios.get(`https://ecommerce.routemisr.com/api/v1/products/${params.id}`);
-                setProduct(response.data.data);
-            } catch (err: unknown) {
-                if (axios.isAxiosError(err)) {
-                    const message = err.response?.data?.message || 'Failed to fetch product details.';
-                    setError(message);
-                } else {
-                    setError('An unexpected error occurred.');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(`https://ecommerce.routemisr.com/api/v1/products/${params.id}`);
+        setProduct(response.data.data);
+        setMainImage(response.data.data.imageCover);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const message = err.response?.data?.message || 'Failed to fetch product details.';
+          setError(message);
+        } else {
+          setError('An unexpected error occurred.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        fetchProductDetails();
-    }, [params.id]); // إعادة جلب البيانات عند تغير الـ ID
+    fetchProductDetails();
+  }, [params.id]);
 
-    if (loading) {
-        return <div className="text-center py-16 text-[#A47864] text-2xl">Loading product details...</div>;
-    }
+  if (loading) {
+    return <div className="text-center py-16 text-[#A47864] text-2xl animate-pulse">Loading product details...</div>;
+  }
 
-    if (error) {
-        return <div className="text-center py-16 text-red-500 text-2xl">Error: {error}</div>;
-    }
+  if (error) {
+    return <div className="text-center py-16 text-red-500 text-2xl">Error: {error}</div>;
+  }
 
-    if (!product) {
-        return <div className="text-center py-16 text-gray-500 text-2xl">Product not found.</div>;
-    }
+  if (!product) {
+    return <div className="text-center py-16 text-gray-500 text-2xl">Product not found.</div>;
+  }
 
-    return (
-        <main className="py-12 bg-[#faebd7]">
-            <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-8 rounded-xl shadow-lg">
-                    {/* جزء عرض الصور */}
-                    <div className="flex flex-col gap-4">
-                        <div className="relative w-full h-96">
-                            <Image 
-                                src={product.imageCover} 
-                                alt={product.title} 
-                                layout="fill" 
-                                objectFit="cover" 
-                                className="rounded-xl" 
-                            />
-                        </div>
-                        {/* معرض الصور المصغرة */}
-                        <div className="flex gap-2 overflow-x-auto">
-                            {product.images.map((img, index) => (
-                                <div key={index} className="relative w-20 h-20 flex-shrink-0 border-2 border-[#C0D6E4] rounded-lg">
-                                    <Image 
-                                        src={img} 
-                                        alt={`${product.title} image ${index + 1}`} 
-                                        layout="fill" 
-                                        objectFit="cover" 
-                                        className="rounded-lg" 
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/* جزء التفاصيل */}
-                    <div className="flex flex-col justify-center">
-                        <h1 className="text-4xl font-bold text-[#A47864] mb-2">{product.title}</h1>
-                        <p className="text-gray-600 mb-4">{product.description}</p>
-                        <div className="flex items-center mb-4">
-                            <span className="text-2xl font-bold text-[#A47864]">${product.price.toFixed(2)}</span>
-                            <span className="ml-auto text-gray-500">Rating: {product.ratingsAverage} ★</span>
-                        </div>
-                        <div className="flex items-center mb-4 text-gray-500 text-sm">
-                            <span className="mr-4">Category: {product.category.name}</span>
-                            <span>Brand: {product.brand.name}</span>
-                        </div>
-                        <button className="bg-[#A47864] text-white font-semibold py-3 px-6 rounded-full w-full hover:bg-[#C0D6E4] transition duration-300">
-                            Add to Cart
-                        </button>
-                    </div>
-                </div>
+  return (
+    <>
+      <Header />
+      <main className="py-12 bg-[#faebd7]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-8 rounded-3xl shadow-2xl"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Main Image */}
+            <div className="flex flex-col gap-4">
+              <div className="relative w-full h-96 overflow-hidden rounded-2xl border-4 border-[#EAD8C0] shadow-lg">
+                <Image
+                  src={mainImage || product.imageCover}
+                  alt={product.title}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-2xl hover:scale-105 transition-transform duration-500 ease-in-out"
+                />
+              </div>
+
+              {/* Gallery Thumbnails */}
+              <div className="flex gap-3 overflow-x-auto pt-2 scrollbar-hide">
+                {product.images.map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative w-20 h-20 flex-shrink-0 rounded-xl border-2 border-[#C0D6E4] hover:border-[#A47864] transition duration-300 overflow-hidden cursor-pointer"
+                    onClick={() => setMainImage(img)}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${product.title} image ${index + 1}`}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-xl"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-        </main>
-    );
+
+            {/* Product Details */}
+            <div className="flex flex-col justify-center gap-4">
+              <h1 className="text-4xl font-bold text-[#A47864] mb-2">{product.title}</h1>
+              <p className="text-gray-700 text-base leading-relaxed">{product.description}</p>
+
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-3xl font-semibold text-[#A47864]">${product.price.toFixed(2)}</span>
+                <span className="text-gray-600 text-sm">⭐ {product.ratingsAverage} / 5</span>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-4">
+                <div className="bg-[#F3E9DD] px-4 py-1 rounded-full">
+                  Category: {product.category.name}
+                </div>
+                <div className="bg-[#F3E9DD] px-4 py-1 rounded-full">
+                  Brand: {product.brand.name}
+                </div>
+              </div>
+
+              <button className="mt-6 bg-[#A47864] hover:bg-[#C0D6E4] hover:text-[#A47864] text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out">
+                Add to Cart
+              </button>
+
+              {/* زر الرجوع */}
+              <button
+                onClick={() => router.push('/products')}
+                className="mt-3 text-[#A47864] hover:underline text-sm font-semibold self-start"
+              >
+                ← Back to Products
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
 };
 
 export default ProductPage;

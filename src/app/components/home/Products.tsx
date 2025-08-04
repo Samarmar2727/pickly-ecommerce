@@ -1,118 +1,272 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import SectionHeading from "../SectionHeading";
 import Image from 'next/image';
-import Link from 'next/link'; 
-import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+
 interface Product {
+  _id: string;
+  title: string;
+  imageCover: string;
+  price: number;
+  category: {
     _id: string;
-    title: string;
-    imageCover: string;
-    price: number;
-    category: {
-        name: string;
-    };
-    brand: {
-        name: string;
-    };
+    name: string;
+  };
+  brand: {
+    _id: string;
+    name: string;
+  };
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
+interface Brand {
+  _id: string;
+  name: string;
+}
+
+const Filters = ({ categories, brands }: { categories: Category[]; brands: Brand[] }) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const handleFilterChange = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    router.push(`/products?${params.toString()}`);
+  };
+
+ return (
+  <div className="flex flex-col md:flex-row gap-4 mb-8">
+    {/* Category Filter */}
+    <select
+      onChange={(e) => handleFilterChange('categoryId', e.target.value)}
+      defaultValue={searchParams.get('categoryId') || ''}
+      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+    >
+      <option value="">All Categories</option>
+      {categories.map((cat) => (
+        <option key={cat._id} value={cat._id}>
+          {cat.name}
+        </option>
+      ))}
+    </select>
+
+    {/* Brand Filter */}
+    <select
+      onChange={(e) => handleFilterChange('brandId', e.target.value)}
+      defaultValue={searchParams.get('brandId') || ''}
+      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+    >
+      <option value="">All Brands</option>
+      {brands.map((brand) => (
+        <option key={brand._id} value={brand._id}>
+          {brand.name}
+        </option>
+      ))}
+    </select>
+
+    {/* Price Filter */}
+    <select
+      onChange={(e) => handleFilterChange('price', e.target.value)}
+      defaultValue={searchParams.get('price') || ''}
+      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+    >
+      <option value="">Sort by Price</option>
+      <option value="asc">Lowest to Highest</option>
+      <option value="desc">Highest to Lowest</option>
+    </select>
+  </div>
+);  
+};
+
 const Products = () => {
-    const searchParams = useSearchParams();
-    const categoryId = searchParams.get('categoryId');
-    const brandId = searchParams.get('brandId');
-    const keyword = searchParams.get('keyword')
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get('categoryId');
+  const brandId = searchParams.get('brandId');
+  const keyword = searchParams.get('keyword');
+  const subcategoryId = searchParams.get('subcategoryId');
 
-    useEffect(() => {
-        const fetchProducts = async () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-            try {
-                  // select the url of api depend on paramaters
-               const params: Record<string, string | number> = {
-                // the main params
-                    limit: 12,
-                    sort: '-price'
-                };
-                 // search params
-                if (keyword) {
-                    params['keyword'] = keyword;
-                }
+  // ✅ fetch filters
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const [catsRes, brandsRes] = await Promise.all([
+          axios.get('https://ecommerce.routemisr.com/api/v1/categories'),
+          axios.get('https://ecommerce.routemisr.com/api/v1/brands'),
+        ]);
+        setCategories(catsRes.data.data);
+        setBrands(brandsRes.data.data);
+      } catch (err) {
+        console.error('Failed to fetch filters');
+      }
+    };
+    fetchFilters();
+  }, []);
 
-                // Filtered params
-                if (categoryId) {
-                    params['category[in]'] = categoryId;
-                }
-                if (brandId) {
-                    params['brand'] = brandId;
-                }
-                const response = await axios.get('https://ecommerce.routemisr.com/api/v1/products',{ params }) 
-                setProducts(response.data.data);
-            } catch (err: unknown) {
-                if (axios.isAxiosError(err)) {
-                    const message = err.response?.data?.message || 'Failed to fetch products.';
-                    setError(message);
-                } else {
-                    setError('An unexpected error occurred.');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+  // ✅ fetch products
+  const fetchProducts = async (append = false) => {
+    try {
+      setLoading(true);
+      const params: Record<string, string | number> = {
+        limit: 12,
+        page,
+      };
 
-        fetchProducts();
-    }, [categoryId, brandId, keyword]);
+      if (keyword) params['keyword'] = keyword;
+      if (categoryId) params['category[in]'] = categoryId;
+      if (brandId) params['brand'] = brandId;
+      if (subcategoryId) params['subcategory'] = subcategoryId;
 
-    if (loading) {
-        return <div className="text-center py-8 text-[#A47864]">Loading products...</div>;
+      const response = await axios.get('https://ecommerce.routemisr.com/api/v1/products', { params });
+
+      const fetched = response.data.data;
+      if (append) {
+        setProducts((prev) => [...prev, ...fetched]);
+      } else {
+        setProducts(fetched);
+      }
+
+      if (fetched.length < 12) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message || 'Failed to fetch products.';
+        setError(message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (error) {
-        return <div className="text-center py-8 text-red-500">Error: {error}</div>;
+  // ✅ fetch on filter change
+  useEffect(() => {
+    setProducts([]);
+    setPage(1);
+    fetchProducts(false);
+  }, [categoryId, brandId, keyword, subcategoryId]);
+
+  // ✅ fetch next page
+  useEffect(() => {
+    if (page > 1) {
+      fetchProducts(true);
     }
+  }, [page]);
 
-    return (
-        <section className="py-8 bg-[#faebd7]">
-            <div className="container mx-auto px-4">
- {/*// Fetches products from the API. It can filter by category and brand, and also handles a search query.
- // Default parameters are set to limit the results and sort by price.*/ }
-            <h2 className="text-3xl font-bold text-[#A47864] text-center mb-8">
-                {keyword ? `Search results for "${keyword}"` : categoryId ? 'Filtered by Category' : brandId ? 'Filtered by Brand' : 'All Products'}
-            </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {products.map(product => (
-                        <Link key={product._id} href={`/products/${product._id}`}>
-                            <div className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer border border-[#C0D6E4]">
-                                <div className="relative w-full h-56">
-                                    <Image
-                                        src={product.imageCover}
-                                        alt={product.title}
-                                        layout="fill"
-                                        objectFit="cover"
-                                        className="rounded-t-xl"
-                                    />
-                                </div>
-                                <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-[#A47864] mb-2">{product.title}</h3>
-                                    <p className="text-sm text-gray-500 mb-2">{product.category.name}</p>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xl font-bold text-[#A47864]">${product.price.toFixed(2)}</span>
-                                        <button className="bg-[#A47864] text-white py-2 px-4 rounded-full hover:bg-[#C0D6E4] transition duration-300">
-                                            Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+  // ✅ render section ...
+  return (
+    <section className="py-10 bg-[#faebd7]">
+      <div className="container mx-auto px-4">
+        <SectionHeading
+          title={
+            keyword
+              ? `Search results for "${keyword}"`
+              : subcategoryId
+              ? 'Filtered by Subcategory'
+              : categoryId
+              ? 'Filtered by Category'
+              : brandId
+              ? 'Filtered by Brand'
+              : 'All Products'
+          }
+          icon="🛍️"
+        />
+
+        <Filters categories={categories} brands={brands} />
+
+        {products.length === 0 ? (
+          <p className="text-center text-gray-500 text-lg">No products found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {products.map((product, index) => (
+              <Link key={product._id} href={`/products/${product._id}`}>
+                <div
+                  className={`
+                    bg-white rounded-2xl shadow-md overflow-hidden border border-[#C0D6E4]
+                    transform transition-all duration-300 ease-in-out hover:scale-105
+                    cursor-pointer animate-zoom-in
+                    relative group
+                  `}
+                  style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
+                >
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
+                    New
+                  </span>
+                  <button
+                    className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-sm z-10 hover:bg-[#A47864] hover:text-white transition"
+                    title="Add to Wishlist"
+                  >
+                    ❤️
+                  </button>
+                  <div className="relative w-full h-64 overflow-hidden">
+                    <Image
+                      src={product.imageCover}
+                      alt={product.title}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-t-2xl transition-transform duration-300 ease-in-out group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-4 flex flex-col justify-between h-48">
+                    <div>
+                      <h3 className="text-lg font-semibold text-[#A47864] mb-1 line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-3">{product.category.name}</p>
+                    </div>
+                    <div className="flex justify-between items-center mt-auto">
+                      <span className="text-xl font-bold text-[#A47864]">
+                        ${product.price.toFixed(2)}
+                      </span>
+                      <button className="bg-[#A47864] text-white py-1.5 px-4 rounded-full hover:bg-[#C0D6E4] hover:text-[#A47864] transition duration-300 text-sm">
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
                 </div>
-            </div>
-        </section>
-    );
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {hasMore && (
+        <div className="text-center mt-8">
+          <button
+            onClick={() => setPage((prev) => prev + 1)}
+            disabled={loading}
+            className="bg-[#A47864] text-white px-6 py-2 rounded hover:bg-[#8c5c4e] transition"
+          >
+            {loading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
+    </section>
+  );
 };
 
 export default Products;
+

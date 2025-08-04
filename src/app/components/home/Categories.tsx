@@ -1,88 +1,107 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Image from 'next/image';
+import SectionHeading from '../SectionHeading';
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 
-const Categories = () => {
-  interface Category {
+interface Category {
   _id: string;
   name: string;
   image: string;
 }
-   
-   const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null); 
-   
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-             
-                const response = await axios.get('https://ecommerce.routemisr.com/api/v1/categories');
-                setCategories(response.data.data);
-                setLoading(false);
-           } catch (err: unknown) {
-                if (axios.isAxiosError(err)) {
-                  const message = err.response?.data?.message || 'Failed to fetch categories.';
-                    setError(message); 
-                } else {
-                
-                    setError('An unexpected error occurred.'); 
-                }
-            } finally {
-                setLoading(false); 
-            }
-        };
+interface Subcategory {
+  _id: string;
+  name: string;
+  category: string;
+}
 
-        fetchCategories();
-    }, []);
+const Categories = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-   
-    if (loading) {
-        return <div className="text-center py-8 text-[#A47864]">Loading categories...</div>;
-    }
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [catRes, subRes] = await Promise.all([
+          axios.get('https://ecommerce.routemisr.com/api/v1/categories'),
+          axios.get('https://ecommerce.routemisr.com/api/v1/subcategories'),
+        ]);
 
-    if (error) {
-        return <div className="text-center py-8 text-red-500">Error: {error}</div>;
-    }
+        setCategories(catRes.data.data);
+        setSubcategories(subRes.data.data);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          const message = err.response?.data?.message || 'Failed to fetch categories.';
+          setError(message);
+        } else {
+          setError('An unexpected error occurred.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <section className="py-8 bg-[#faebd7]"> 
-            <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-bold text-[#A47864] text-center mb-8">Shop by Category</h2> {/* عنوان بني */}
-                <div className="flex flex-wrap justify-center gap-6">
-            
-                    {categories.map(category => (
-                        <Link
-                            key={category._id} 
-                             href={`/products?categoryId=${category._id}`}
-                         >
-                           <div
-                            className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer border border-[#C0D6E4]" // كارد بستايل أنيق
-                           >
+    fetchAll();
+  }, []);
 
-                           <div className="relative w-full h-48">
-                                <Image 
-                                    src={category.image} 
-                                    alt={category.name} 
-                                    layout="fill" 
-                                    objectFit="cover" 
-                                    className="rounded-t-xl" 
-                                />
-                            </div>
-                          <div className="p-4 text-center bg-[#C0D6E4] text-[#A47864] font-semibold"> 
-                                <h3>{category.name}</h3>
-                            </div>
-                            </div>
-                        </Link>
-                    ))}
+  const toggleDropdown = (categoryId: string) => {
+    setOpenDropdown(prev => (prev === categoryId ? null : categoryId));
+  };
+
+  const getSubcategoriesByCategory = (categoryId: string) =>
+    subcategories.filter(sub => sub.category === categoryId);
+
+  if (loading) return <div className="text-center py-10 text-[#A47864]">Loading...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+
+  return (
+    <section className="py-10 bg-[#fffaf4]">
+      <div className="container mx-auto px-4 max-w-lg">
+        <SectionHeading title="Shop by Category" icon="🛍️" />
+
+        <div className="space-y-3">
+          {categories.map(category => (
+            <div key={category._id} className="relative">
+              <button
+                onClick={() => toggleDropdown(category._id)}
+                className="w-full flex justify-between items-center bg-white border border-[#E0DAD4] rounded-lg px-4 py-3 text-[#A47864] font-semibold hover:shadow transition"
+              >
+                <Link href={`/products?categoryId=${category._id}`} className="hover:underline">
+                  {category.name}
+                </Link>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform duration-200 ${
+                    openDropdown === category._id ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {openDropdown === category._id && (
+                <div className="absolute z-10 left-0 right-0 bg-white border border-[#E0DAD4] rounded-lg mt-1 py-2 shadow-md animate-fade-in">
+                  {getSubcategoriesByCategory(category._id).map(sub => (
+                    <Link
+                      key={sub._id}
+                      href={`/products?subcategoryId=${sub._id}`}
+                      className="block px-4 py-2 text-sm font-medium text-[#A47864] bg-[#ECE5E1] border border-[#D2BDB2] rounded-lg mb-1 hover:bg-[#A47864] hover:text-white transition"
+
+                      >
+                      {sub.name}
+                    </Link>
+                  ))}
                 </div>
+              )}
             </div>
-        </section>
-    );
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Categories;
