@@ -24,13 +24,8 @@ interface ProductDetails {
   images: string[];
 }
 
-interface ProductPageProps {
-  params: {
-    id: string;
-  };
-}
 
-const ProductPage = ({ params }: ProductPageProps) => {
+const ProductPage = ({ params }: { params: { id: string } }) => {
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [mainImage, setMainImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
