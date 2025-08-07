@@ -1,12 +1,13 @@
 'use client'; 
 
 import React, { useState, useEffect } from 'react';
-import { Playfair_Display } from 'next/font/google';
+//import { Playfair_Display } from 'next/font/google';
+import { Dancing_Script } from "next/font/google";
 
-// Import the Playfair Display font from Google Fonts
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '700', '900'],
+// Import the Dancing_Script font from Google Fonts
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 // Define the props type for the component
@@ -58,7 +59,7 @@ const TypingHeader = ({ messages }: TypingHeaderProps) => {
 
   return (
     // Display the current text and a blinking cursor
-    <h1 className={`${playfair.className} text-4xl font-bold`}>
+    <h1 className={`${dancingScript.className} text-4xl font-bold`}>
       {currentText}
       {/* Blinking cursor */}
       <span className="inline-block w-1 h-8 bg-white animate-blink ml-1"></span>

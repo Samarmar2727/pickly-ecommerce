@@ -20,14 +20,8 @@ const messages = [
    <div className="relative w-full h-20 text-white">
   {/* Background with clip-path */}
   <div className="absolute inset-0 clip-wave bg-gradient-to-r from-[#A47864] via-[#C0D6E4] to-[#A47864] z-0"></div>
-  {/* logo */}
-     <Link href="/home">
-            <h1 className="text-3xl font-extrabold tracking-wide text-[#C0D6E4] cursor-pointer">
-              Pick<span className="text-[#faebd7] italic">ly</span>
-            </h1>
-          </Link>
 
-  {/* Text on top */}
+ {/* Text on top */}
   <div className="relative z-10 flex items-center justify-center h-full">
     <TypingHeader messages={messages} />
   </div>

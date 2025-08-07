@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+// --- Imports ---
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import SectionHeading from "../SectionHeading";
 import Image from 'next/image';
 import Link from 'next/link';
+import { HeartIcon } from "@heroicons/react/24/outline";
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
+// --- Type Definitions ---
 interface Product {
   _id: string;
   title: string;
@@ -32,10 +37,12 @@ interface Brand {
   name: string;
 }
 
+// --- Filters Component (for filtering products) ---
 const Filters = ({ categories, brands }: { categories: Category[]; brands: Brand[] }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Handle filter changes and update URL search params
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
@@ -46,57 +53,60 @@ const Filters = ({ categories, brands }: { categories: Category[]; brands: Brand
     router.push(`/products?${params.toString()}`);
   };
 
- return (
-  <div className="flex flex-col md:flex-row gap-4 mb-8">
-    {/* Category Filter */}
-    <select
-      onChange={(e) => handleFilterChange('categoryId', e.target.value)}
-      defaultValue={searchParams.get('categoryId') || ''}
-      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
-    >
-      <option value="">All Categories</option>
-      {categories.map((cat) => (
-        <option key={cat._id} value={cat._id}>
-          {cat.name}
-        </option>
-      ))}
-    </select>
+  return (
+    <div className="flex flex-col md:flex-row gap-4 mb-8">
+      {/* Category Filter Dropdown */}
+      <select
+        onChange={(e) => handleFilterChange('categoryId', e.target.value)}
+        defaultValue={searchParams.get('categoryId') || ''}
+        className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+      >
+        <option value="">All Categories</option>
+        {categories.map((cat) => (
+          <option key={cat._id} value={cat._id}>
+            {cat.name}
+          </option>
+        ))}
+      </select>
 
-    {/* Brand Filter */}
-    <select
-      onChange={(e) => handleFilterChange('brandId', e.target.value)}
-      defaultValue={searchParams.get('brandId') || ''}
-      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
-    >
-      <option value="">All Brands</option>
-      {brands.map((brand) => (
-        <option key={brand._id} value={brand._id}>
-          {brand.name}
-        </option>
-      ))}
-    </select>
+      {/* Brand Filter Dropdown */}
+      <select
+        onChange={(e) => handleFilterChange('brandId', e.target.value)}
+        defaultValue={searchParams.get('brandId') || ''}
+        className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+      >
+        <option value="">All Brands</option>
+        {brands.map((brand) => (
+          <option key={brand._id} value={brand._id}>
+            {brand.name}
+          </option>
+        ))}
+      </select>
 
-    {/* Price Filter */}
-    <select
-      onChange={(e) => handleFilterChange('price', e.target.value)}
-      defaultValue={searchParams.get('price') || ''}
-      className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
-    >
-      <option value="">Sort by Price</option>
-      <option value="asc">Lowest to Highest</option>
-      <option value="desc">Highest to Lowest</option>
-    </select>
-  </div>
-);  
+      {/* Price Filter Dropdown (Sorting) */}
+      <select
+        onChange={(e) => handleFilterChange('price', e.target.value)}
+        defaultValue={searchParams.get('price') || ''}
+        className="border border-[#A47864] bg-white text-[#A47864] px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+      >
+        <option value="">Sort by Price</option>
+        <option value="asc">Lowest to Highest</option>
+        <option value="desc">Highest to Lowest</option>
+      </select>
+    </div>
+  );
 };
 
+// --- Products Component (Main component for displaying products) ---
 const Products = () => {
+  // Get filter parameters from URL search params
   const searchParams = useSearchParams();
   const categoryId = searchParams.get('categoryId');
   const brandId = searchParams.get('brandId');
   const keyword = searchParams.get('keyword');
   const subcategoryId = searchParams.get('subcategoryId');
 
+  // Local state management for products, filters, and UI feedback
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -105,7 +115,36 @@ const Products = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // ✅ fetch filters
+  // Custom hooks for cart and wishlist functionality
+  const { addToCart, isLoading: isCartLoading } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+
+  // Handler for adding a product to the cart
+  const handleAddToCart = (e: React.MouseEvent, productId: string) => {
+    // Prevent the parent Link from navigating
+    e.preventDefault();
+    addToCart(productId);
+  };
+
+  // Helper function to check if a product is in the wishlist
+  const isProductInWishlist = (productId: string) => {
+    // Check if wishlist exists and if the product ID is present
+    return wishlist?.products.some(item => item._id === productId) || false;
+  };
+
+  // Handler for adding/removing a product from the wishlist
+  const handleWishlistClick = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault(); // Prevent parent Link from navigating
+    if (isProductInWishlist(productId)) {
+      // If product is already in wishlist, remove it
+      removeFromWishlist(productId);
+    } else {
+      // Otherwise, add it
+      addToWishlist(productId);
+    }
+  };
+
+  // Effect to fetch categories and brands on initial load
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -115,15 +154,15 @@ const Products = () => {
         ]);
         setCategories(catsRes.data.data);
         setBrands(brandsRes.data.data);
-      } catch (err) {
-        console.error('Failed to fetch filters');
+      } catch (error) {
+        console.error(error, 'Failed to fetch filters');
       }
     };
     fetchFilters();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once
 
-  // ✅ fetch products
-  const fetchProducts = async (append = false) => {
+  // Memoized function to fetch products based on filters and pagination
+  const fetchProducts = useCallback(async (append = false) => {
     try {
       setLoading(true);
       const params: Record<string, string | number> = {
@@ -145,6 +184,7 @@ const Products = () => {
         setProducts(fetched);
       }
 
+      // Check if there are more products to load
       if (fetched.length < 12) {
         setHasMore(false);
       } else {
@@ -160,23 +200,23 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryId, brandId, keyword, subcategoryId, page]);
 
-  // ✅ fetch on filter change
+  // Effect to refetch products when filters change (resets page to 1)
   useEffect(() => {
     setProducts([]);
     setPage(1);
     fetchProducts(false);
-  }, [categoryId, brandId, keyword, subcategoryId]);
+  }, [categoryId, brandId, keyword, subcategoryId, fetchProducts]);
 
-  // ✅ fetch next page
+  // Effect to fetch the next page of products when the page state changes
   useEffect(() => {
     if (page > 1) {
       fetchProducts(true);
     }
-  }, [page]);
+  }, [page, fetchProducts]);
 
-  // ✅ render section ...
+  // --- Render Section ---
   return (
     <section className="py-10 bg-[#faebd7]">
       <div className="container mx-auto px-4">
@@ -196,7 +236,12 @@ const Products = () => {
         />
 
         <Filters categories={categories} brands={brands} />
+        {/* Display error message if fetching fails */}
+        {error && (
+          <p className="text-center text-red-500 text-lg">{error}</p>
+        )}
 
+        {/* Conditional rendering based on products availability */}
         {products.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">No products found.</p>
         ) : (
@@ -215,12 +260,18 @@ const Products = () => {
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
                     New
                   </span>
-                  <button
-                    className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-sm z-10 hover:bg-[#A47864] hover:text-white transition"
-                    title="Add to Wishlist"
-                  >
-                    ❤️
-                  </button>
+                  {/* Wishlist icon with dynamic styling */}
+                  <HeartIcon
+                    onClick={(e) => handleWishlistClick(e, product._id)}
+                    className={`
+                      absolute top-2 right-2 p-1 rounded-full shadow-sm z-10 transition-colors
+                      ${
+                        isProductInWishlist(product._id)
+                          ? 'bg-[#A47864] text-white'
+                          : 'bg-white text-[#A47864]'
+                      }
+                    `}
+                  />
                   <div className="relative w-full h-64 overflow-hidden">
                     <Image
                       src={product.imageCover}
@@ -241,7 +292,12 @@ const Products = () => {
                       <span className="text-xl font-bold text-[#A47864]">
                         ${product.price.toFixed(2)}
                       </span>
-                      <button className="bg-[#A47864] text-white py-1.5 px-4 rounded-full hover:bg-[#C0D6E4] hover:text-[#A47864] transition duration-300 text-sm">
+                      {/* Add to Cart button */}
+                      <button
+                        onClick={(e) => handleAddToCart(e, product._id)}
+                        disabled={isCartLoading}
+                        className="bg-[#A47864] text-white py-1.5 px-4 rounded-full hover:bg-[#C0D6E4] hover:text-[#A47864] transition duration-300 text-sm"
+                      >
                         Add to Cart
                       </button>
                     </div>
@@ -253,6 +309,7 @@ const Products = () => {
         )}
       </div>
 
+      {/* "Load More" button for pagination */}
       {hasMore && (
         <div className="text-center mt-8">
           <button
@@ -269,4 +326,3 @@ const Products = () => {
 };
 
 export default Products;
-
