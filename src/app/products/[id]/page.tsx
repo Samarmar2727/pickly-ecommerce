@@ -135,8 +135,6 @@ const ProductPage = ({ params }: ProductPageProps) => {
               <button className="mt-6 bg-[#A47864] hover:bg-[#C0D6E4] hover:text-[#A47864] text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out">
                 Add to Cart
               </button>
-
-              {/* زر الرجوع */}
               <button
                 onClick={() => router.push('/products')}
                 className="mt-3 text-[#A47864] hover:underline text-sm font-semibold self-start"
