@@ -22,8 +22,7 @@ interface ProductDetails {
     name: string;
   };
   images: string[];
-}
-const ProductPage = ({ params }: { params: { id: string } }) => {
+}const ProductPage: React.FC<any> = ({ params }) => {
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [mainImage, setMainImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
