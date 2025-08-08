@@ -23,9 +23,7 @@ interface ProductDetails {
   };
   images: string[];
 }
-
-
-  const ProductPage = ({ params })  => {
+const ProductPage = ({ params }: { params: { id: string } }) => {
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [mainImage, setMainImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
