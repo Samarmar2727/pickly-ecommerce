@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React,  { Suspense } from 'react';
 import Header from '../components/Header';
 import Footer from "../components/Footer";
 import HeroSection from "../components/home/HeroSection"
@@ -36,8 +36,10 @@ const HomePage = () => {
      <HeroSection/>
       <main>
                 <Brands />
-                  <Products />
-                      
+                   <Suspense>
+                      <Products />
+                  </Suspense>
+
         </main>
     </div>
     <Footer/>
