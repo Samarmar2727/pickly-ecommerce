@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import HeroSection from "../components/home/HeroSection"
 //import Categories from "../components/home/Categories"
 import Brands from "../components/home/Brands"
+//import Filters from "../components/home/Filters"
 import Products from "../components/home/Products"
 import TypingHeader from "../components/TypingHeader"
 import { motion } from "framer-motion";
@@ -35,7 +36,8 @@ const HomePage = () => {
      <HeroSection/>
       <main>
                 <Brands />
-                <Products/>
+                  <Products />
+                      
         </main>
     </div>
     <Footer/>
