@@ -1,67 +1,152 @@
-# Pickly - E-commerce Project
+# 🛒 Pickly - E-commerce Project
 
-This document provides an overview of the components created for the e-commerce project, built with **_Next.js_**, **_TypeScript_**, and **_Tailwind CSS_**. The project is designed to display products, categories, and brands interactively, with features for searching and filtering.
+**Pickly** is a complete e-commerce web application built with **Next.js 15**, **TypeScript**, and **Tailwind CSS**.  
+It provides product browsing, category & brand filtering, search functionality, authentication, order placement, and an onboarding flow.
 
-## Core Components
+---
 
-### src/components/home/Header.tsx
+## 🚀 Tech Stack
 
-This component represents the main navigation bar.
-Functionality: Displays the site logo, a search bar, a cart icon, and a logout button.
+- **Next.js 15** – App Router
+- **TypeScript** – Type safety
+- **Tailwind CSS** – Styling
+- **Framer Motion** – Animations
+- **React Icons** – Icons
+- **React Context API** – State management
+- **REST APIs** – `https://ecommerce.routemisr.com/api/v1`
 
-## Key Features:
+---
 
-- Search: When a user types a query and presses Enter, it navigates to the products page, passing the search term as a URL query parameter (keyword).
+## 📂 Project Structure
 
-- Interactivity: Uses useState to manage the search input state and useRouter for programmatic navigation.
+src/
+app/
+home/ # Home page
+products/ # Product listing
+products/[id]/ # Product details
+checkout/ # Checkout page
+orders/ # Order placement page
+onboarding/ # Onboarding flow
+layout/ # Layout wrapper
+components/ # Reusable UI components
+context/ # Global state management
 
-## src/components/home/Categories.tsx
+---
 
-This component is responsible for displaying the main product categories.
-Functionality: Fetches categories from the API and renders them as clickable cards.
+## ✨ Features
 
-## Key Features:
+- Real authentication (Login & Register via API).
+- Category & subcategory filtering from navbar dropdown.
+- Brand filtering & display.
+- Search functionality in header.
+- Animated hero section.
+- Product listing with filtering by category, brand, and price range.
+- Product details page with gallery and extra info.
+- Wishlist modal to view saved items.
+- Cart modal with checkout button.
+- Checkout page with shipping & payment details.
+- Order confirmation page.
 
-- Data Fetching: Uses useEffect to fetch the list of categories from the GET /v1/categories API.
-- Filtering: Each category card is a Link that redirects the user to the products page, filtering by that category's ID (categoryId).
+---
 
-## src/components/home/Brands.tsx
+## 🖥️ Pages Overview
 
-This component displays the available product brands.
+### **Onboarding Page (`src/app/onboarding/page.tsx`)**
 
-Functionality: Fetches brands from the API and displays their logos in a circular layout.
+- Welcome screen for first-time users.
+- Features:
+  - **Animated Typing Header** with rotating welcome messages.
+  - **Sign In Form** for returning users.
+  - **Sign Up Prompt** with modal-based registration.
+- UI:
+  - Gradient wave-shaped header.
+  - Two-column layout (Sign In & Sign Up).
+  - Responsive, modern design.
 
-## Key Features:
+---
 
-- Data Fetching: Uses useEffect to fetch the brands from the GET /v1/brands API.
-- Filtering: Each brand logo is a Link that takes the user to the products page, filtering by that brand's ID (brandId).
+### **Root Layout (`src/app/layout.tsx`)**
 
-## src/app/products/page.tsx
+- Global wrapper for the entire application.
+- Wraps all pages with:
+  - `<CartProvider>` for cart state.
+  - `<WishlistProvider>` for wishlist state.
+- Applies global styles from `globals.css`.
+- Sets up `<html lang="en">` and base colors.
 
-This is the main page for displaying the product list.
+---
 
-Functionality: Displays products and supports dynamic filtering and searching.
+### **Header (`src/components/home/Header.tsx`)**
 
-## Key Features:
+- Main navigation bar.
+- Features:
+  - Site logo.
+  - Search bar (navigates to `/products` with `keyword` query).
+  - Category & subcategory dropdown menus.
+  - Cart and wishlist icons (open modals).
+  - Logout button.
 
-- API Control: Uses useEffect to fetch products from the GET /v1/products API.
-- Dynamic Filtering: Reads URL query parameters (keyword, categoryId, brandId) using useSearchParams and adjusts the API call accordingly.
-- Product Display: Renders a grid of products, where each product card is a Link to its detail page.
+---
 
-## src/app/products/[id]/page.tsx
+### **Brands (`src/components/home/Brands.tsx`)**
 
-This is a dynamic route for displaying the details of a specific product.
-Functionality: Fetches and renders detailed information for a single product based on the ID in the URL.
+- Fetches brands from `GET /v1/brands`.
+- Displays brand logos in a circular style.
+- Clicking a brand navigates to `/products` filtered by `brandId`.
 
-## Key Features:
+---
 
-- ID Access: Uses the params object from the Next.js App Router to get the product ID from the URL path.
-- Data Fetching: Uses useEffect to fetch product details from the GET /v1/products/:id API.
-- Detail Display: Shows the main product image, a gallery of other images, a description, price, and ratings.
+### **Products Page (`src/app/products/page.tsx`)**
 
-#### APIs Used
+- Displays a grid of products with filtering and search.
+- Fetches from `GET /v1/products`.
+- Reads URL query parameters:
+  - `keyword`
+  - `categoryId`
+  - `brandId`
+- Each product links to its detail page.
 
-- `GET https://ecommerce.routemisr.com/api/v1/categories`
-- `GET https://ecommerce.routemisr.com/api/v1/brands`
-- `GET https://ecommerce.routemisr.com/api/v1/products`
-- `GET https://ecommerce.routemisr.com/api/v1/products/:id`
+---
+
+### **Product Detail Page (`src/app/products/[id]/page.tsx`)**
+
+- Fetches product data from `GET /v1/products/:id`.
+- Displays:
+  - Main image & gallery.
+  - Description, price, ratings.
+  - Additional product info.
+
+---
+
+### **Orders Page (`src/app/orders/page.tsx`)**
+
+- Displays a list of placed orders for the authenticated user.
+- Shows order details such as product list, total amount, and status.
+
+---
+
+## 🧭 User Flow
+
+1. User lands on Onboarding Page → chooses to Log in or Register.
+2. Redirect to Home Page with:
+   - Header (search, categories dropdown, wishlist & cart modals).
+3. Hero Section welcomes the user.
+4. Brands component shows available brands.
+5. Products section:
+   - Filtering options.
+   - Product cards linking to details page.
+6. Wishlist modal → view saved products.
+7. Cart modal → view cart & checkout.
+8. Checkout page → enter shipping & payment details.
+9. Order confirmation → redirect to Home.
+
+---
+
+## 🔮 Future Enhancements
+
+- Add "Add to Cart" directly from Wishlist modal.
+- Implement persistent cart & wishlist storage.
+- Add product reviews and ratings.
+- Improve category & subcategory filtering UI.
+
+---
