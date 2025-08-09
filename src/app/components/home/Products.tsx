@@ -1,6 +1,5 @@
 "use client";
 
-// --- Imports ---
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import SectionHeading from "../SectionHeading";
@@ -11,7 +10,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 
-// --- Type Definitions ---
+//interfaces
 interface Product {
   _id: string;
   title: string;
@@ -37,7 +36,7 @@ interface Brand {
   name: string;
 }
 
-// --- Filters Component (for filtering products) ---
+// Filters Component (for filtering products)
 const Filters = ({ categories, brands }: { categories: Category[]; brands: Brand[] }) => {
   const searchParams = useSearchParams();
   const router = useRouter();

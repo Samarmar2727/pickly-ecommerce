@@ -1,7 +1,6 @@
-
 'use client';
 import { useState } from 'react';
-import Link from "next/link";
+//import Link from "next/link";
 import TypingHeader from './components/TypingHeader';
 import SignInForm from './components/auth/SignInForm';
 import SignUpModal from './components/auth/SignUpModal';
