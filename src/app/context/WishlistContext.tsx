@@ -53,7 +53,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
     try {
       await axios.post(API_URL, { productId }, { headers: { token } });
-      await getWishlist(); // تحديث بعد الإضافة
+      await getWishlist(); //updated after add
     } catch (error) {
       console.error('Failed to add product to wishlist:', error);
     }
@@ -63,7 +63,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
     try {
       await axios.delete(`${API_URL}/${productId}`, { headers: { token } });
-      await getWishlist(); // تحديث بعد الإزالة
+      await getWishlist(); //  //updated after remove
     } catch (error) {
       console.error('Failed to remove product from wishlist:', error);
     }

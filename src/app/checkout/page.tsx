@@ -5,7 +5,6 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 
-// Interfaces
 interface Address {
   _id?: string;
   name: string;
@@ -22,10 +21,9 @@ const CheckoutPage: React.FC = () => {
   const [newAddress, setNewAddress] = useState<Address>({ name: '', details: '', phone: '', city: '' });
   const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
-  
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  // API Calls & Handlers
   const getUserAddresses = useCallback(async () => {
     try {
       const response = await axios.get('https://ecommerce.routemisr.com/api/v1/addresses', {
@@ -48,7 +46,7 @@ const CheckoutPage: React.FC = () => {
     if (!selectedAddress || !cart) return;
     setIsProcessingOrder(true);
     try {
-      const _response = await axios.post(`https://ecommerce.routemisr.com/api/v1/orders/${cart._id}`, { shippingAddress: selectedAddress }, {
+      await axios.post(`https://ecommerce.routemisr.com/api/v1/orders/${cart._id}`, { shippingAddress: selectedAddress }, {
         headers: { token: token },
       });
       alert('Cash Order Created Successfully!');
@@ -94,7 +92,6 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  // --- Effects ---
   useEffect(() => {
     getUserAddresses();
   }, [getUserAddresses]);
@@ -119,31 +116,48 @@ const CheckoutPage: React.FC = () => {
     );
   }
 
-  // Rendering
   return (
-    <div className="min-h-screen p-6 bg-[#faebd7]">
+    <div className="min-h-screen p-4 sm:p-6 bg-[#faebd7]">
       <div className="container mx-auto max-w-2xl">
-        <h1 className="text-4xl font-bold text-[#A47864] mb-8 text-center">Checkout</h1>
+        <h1 className="text-2xl sm:text-4xl font-bold text-[#A47864] mb-6 sm:mb-8 text-center">
+          Checkout
+        </h1>
 
-        {/* 1. Shipping Details Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Shipping Details</h2>
+        {/* Shipping Details */}
+        <div className="bg-[#C0D6E4] p-4 sm:p-6 rounded-lg shadow-md mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#A47864] mb-4">
+            Shipping Details
+          </h2>
 
           {showAddressForm ? (
-            <form onSubmit={addNewAddressHandler} className="space-y-4">
-              <h4 className="text-lg font-medium text-[#A47864]">Add a New Address</h4>
-              <input type="text" placeholder="Name (e.g., Home)" value={newAddress.name} onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="text" placeholder="Details (Street, Building)" value={newAddress.details} onChange={(e) => setNewAddress({ ...newAddress, details: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="tel" placeholder="Phone" value={newAddress.phone} onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="text" placeholder="City" value={newAddress.city} onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <button type="submit" className="w-full bg-[#A47864] text-white px-4 py-3 rounded-lg shadow hover:bg-[#8f6551] transition disabled:bg-gray-400">Save Address</button>
+            <form onSubmit={addNewAddressHandler} className="space-y-3 sm:space-y-4">
+              <h4 className="text-base sm:text-lg font-medium text-[#A47864]">
+                Add a New Address
+              </h4>
+              {["Name (e.g., Home)", "Details (Street, Building)", "Phone", "City"].map((placeholder, idx) => (
+                <input
+                  key={idx}
+                  type={placeholder === "Phone" ? "tel" : "text"}
+                  placeholder={placeholder}
+                  value={(Object.values(newAddress) as string[])[idx]}
+                  onChange={(e) => setNewAddress({ ...newAddress, [Object.keys(newAddress)[idx]]: e.target.value })}
+                  required
+                  className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]"
+                />
+              ))}
+              <button
+                type="submit"
+                className="w-full bg-[#A47864] text-white px-4 py-3 rounded-lg shadow hover:bg-[#8f6551] transition disabled:bg-gray-400"
+              >
+                Save Address
+              </button>
             </form>
           ) : (
             <div>
-              <h4 className="text-lg font-medium text-[#A47864]">Choose an Address</h4>
+              <h4 className="text-base sm:text-lg font-medium text-[#A47864]">Choose an Address</h4>
               <div className="space-y-2">
                 {addresses.map((address) => (
-                  <div key={address._id} className="address-item flex items-center p-3 border border-[#A47864] rounded-md bg-white">
+                  <div key={address._id} className="flex items-center p-3 border border-[#A47864] rounded-md bg-white">
                     <input
                       type="radio"
                       id={address._id}
@@ -152,41 +166,52 @@ const CheckoutPage: React.FC = () => {
                       onChange={() => setSelectedAddress(address)}
                       className="mr-2 accent-[#A47864]"
                     />
-                    <label htmlFor={address._id} className="text-[#8f6551]">
+                    <label htmlFor={address._id} className="text-[#8f6551] text-sm sm:text-base">
                       <strong>{address.name}</strong>: {address.details}, {address.city}, {address.phone}
                     </label>
                   </div>
                 ))}
               </div>
-              <button onClick={() => setShowAddressForm(true)} className="mt-4 text-[#A47864] hover:underline font-medium">Add New Address</button>
+              <button
+                onClick={() => setShowAddressForm(true)}
+                className="mt-4 text-[#A47864] hover:underline font-medium"
+              >
+                Add New Address
+              </button>
             </div>
           )}
         </div>
 
-        {/* 2. Order Summary Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Order Summary</h2>
-          <div className="space-y-4">
+        {/* Order Summary */}
+        <div className="bg-[#C0D6E4] p-4 sm:p-6 rounded-lg shadow-md mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#A47864] mb-4">
+            Order Summary
+          </h2>
+          <div className="space-y-3">
             {cart.products.map((item) => (
               <div key={item.product._id} className="flex justify-between items-center border-b border-[#A47864] pb-2 text-[#8f6551]">
                 <div className="flex items-center">
-                  <span className="font-medium text-[#A47864]">{item.product.title}</span>
-                  <span className="text-sm ml-2">x{item.count}</span>
+                  <span className="font-medium text-[#A47864] text-sm sm:text-base">{item.product.title}</span>
+                  <span className="text-xs sm:text-sm ml-2">x{item.count}</span>
                 </div>
-                <span className="font-semibold text-[#A47864]">{(item.product.price * item.count).toFixed(2)} EGP</span>
+                <span className="font-semibold text-[#A47864] text-sm sm:text-base">
+                  {(item.product.price * item.count).toFixed(2)} EGP
+                </span>
               </div>
             ))}
           </div>
           <div className="mt-4 pt-4 border-t-2 border-[#A47864] flex justify-between items-center">
-            <span className="text-xl font-bold text-[#A47864]">Total Price:</span>
-            <span className="text-2xl font-bold text-[#A47864]">{cart.totalCartPrice} EGP</span>
+            <span className="text-lg sm:text-xl font-bold text-[#A47864]">Total Price:</span>
+            <span className="text-xl sm:text-2xl font-bold text-[#A47864]">{cart.totalCartPrice} EGP</span>
           </div>
         </div>
 
-        {/* 3. Payment Method Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Payment Method</h2>
-          <div className="flex space-x-4">
+        {/* Payment */}
+        <div className="bg-[#C0D6E4] p-4 sm:p-6 rounded-lg shadow-md">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#A47864] mb-4">
+            Payment Method
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={createCashOrder}
               disabled={!selectedAddress || isProcessingOrder}

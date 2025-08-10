@@ -74,9 +74,9 @@ const Brands = () => {
 
           <div
             ref={carouselRef}
-            className="flex gap-6 px-8 scroll-smooth"
+            className="flex gap-4 sm:gap-6 px-4 sm:px-8 scroll-smooth"
             style={{
-              overflowX: 'hidden',
+              overflowX: 'auto', // يسمح بالسحب في الموبايل
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
             }}
@@ -85,13 +85,13 @@ const Brands = () => {
               <Link key={brand._id} href={`/products?brandId=${brand._id}`}>
                 <div
                   className="
-                    min-w-[120px] min-h-[120px] sm:min-w-[140px] sm:min-h-[140px]
+                    min-w-[90px] min-h-[90px] sm:min-w-[120px] sm:min-h-[120px]
                     bg-white rounded-full p-2 shadow-lg border-2 border-[#A47864]
                     flex items-center justify-center overflow-hidden
                     transition-transform duration-300 hover:scale-110
                   "
                 >
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                     <Image
                       src={brand.image}
                       alt={brand.name}

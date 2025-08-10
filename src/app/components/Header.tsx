@@ -6,7 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import WishlistModal from './home/WishlistModal';
 import CartModal from "./home/CartModal";
 import { useState, useEffect } from 'react';
-import { ShoppingCartIcon, HeartIcon } from "@heroicons/react/24/outline";
+import { ShoppingCartIcon, HeartIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import LogOutModal from "./auth/LogOutModal";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
@@ -29,6 +29,7 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { cart, isLoading } = useCart();
   const numberOfItems = cart?.numOfCartItems ?? 0; 
@@ -60,7 +61,6 @@ export default function Header() {
   const getSubcategoriesByCategory = (categoryId: string) =>
     subcategories.filter(sub => sub.category === categoryId);
 
- 
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -78,20 +78,6 @@ export default function Header() {
     fetchAll();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.category-dropdown')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
     <header className="bg-[#A47864] text-white">
       {/* === Top Header === */}
@@ -102,7 +88,8 @@ export default function Header() {
           </h1>
         </Link>
 
-        <div className="flex items-center gap-4">
+        {/* Desktop search + icons */}
+        <div className="hidden md:flex items-center gap-4">
           <input
             type="text"
             placeholder="Search…"
@@ -150,10 +137,22 @@ export default function Header() {
             Logout
           </button>
         </div>
+
+        {/* Mobile Menu Icon */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden"
+        >
+          {mobileMenuOpen ? (
+            <XMarkIcon className="h-6 w-6 text-white" />
+          ) : (
+            <Bars3Icon className="h-6 w-6 text-white" />
+          )}
+        </button>
       </div>
 
-      {/* === Categories Nav Bar === */}
-      <nav className="bg-[#8f6551] px-4 py-2 flex gap-6 justify-center relative z-50">
+      {/* Desktop Categories */}
+      <nav className="bg-[#8f6551] px-4 py-2 gap-6 justify-center relative z-50 hidden md:flex">
         {categories.map((category, index) => (
           <motion.div
             key={category._id}
@@ -170,14 +169,13 @@ export default function Header() {
               {category.name}
             </button>
 
-            {/* Dropdown */}
             {openDropdown === category._id && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="absolute category-dropdown top-full left-0 bg-white text-[#A47864] rounded-xl shadow-lg mt-2 z-50 min-w-[180px] p-2 space-y-1 animate-fade-in border border-[#CBB8AE]"
+                className="absolute category-dropdown top-full left-0 bg-white text-[#A47864] rounded-xl shadow-lg mt-2 z-50 min-w-[180px] p-2 space-y-1 border border-[#CBB8AE]"
               >
                 {getSubcategoriesByCategory(category._id).map((sub) => (
                   <Link
@@ -193,6 +191,55 @@ export default function Header() {
           </motion.div>
         ))}
       </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[#8f6551] p-4 space-y-4">
+          <input
+            type="text"
+            placeholder="Search…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
+            className="w-full px-4 py-2 rounded-md bg-[#C0D6E4] text-[#A47864] placeholder-[#A47864] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition duration-200"
+          />
+
+          <div className="flex items-center gap-4">
+            <HeartIcon 
+              onClick={handleWishlistOpenModal} 
+              className="h-6 w-6 text-[#C0D6E4] cursor-pointer hover:text-[#faebd7] transition" 
+            />
+            <ShoppingCartIcon 
+              onClick={handleCartOpenModal} 
+              className="h-6 w-6 text-[#C0D6E4] cursor-pointer hover:text-[#faebd7] transition" 
+            />
+            <button
+              onClick={() => setShowLogoutModal(true)}
+              className="bg-[#A47864] text-white px-4 py-2 rounded-md hover:bg-[#c2917c] transition duration-200 cursor-pointer"
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {categories.map((category) => (
+              <div key={category._id}>
+                <p className="font-semibold text-white">{category.name}</p>
+                {getSubcategoriesByCategory(category._id).map((sub) => (
+                  <Link
+                    key={sub._id}
+                    href={`/products?subcategoryId=${sub._id}`}
+                    className="block pl-4 text-sm text-[#faebd7] hover:underline"
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Wishlist Modal */}
       <WishlistModal
@@ -214,3 +261,5 @@ export default function Header() {
     </header>
   );
 }
+
+

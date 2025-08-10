@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useRouter } from "next/navigation";
@@ -20,24 +19,22 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2"
       onClick={onClose}
     >
       <div
-        className="bg-[#C0D6E4] p-6 rounded-lg shadow-lg max-w-lg w-full relative max-h-[80vh] overflow-y-auto"
+        className="bg-[#C0D6E4] p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-lg relative max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-[#A47864] hover:text-[#8f6551] text-2xl font-bold transition"
+          className="absolute top-2 right-2 text-[#A47864] hover:text-[#8f6551] text-2xl sm:text-3xl font-bold transition"
         >
           &times;
         </button>
 
-        <h2 className="text-2xl font-bold mb-4 text-[#A47864]">
-          Your Wishlist
-        </h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-[#A47864]">Your Wishlist</h2>
 
         {isWishlistLoading ? (
           <p className="text-center text-[#8f6551]">Loading...</p>
@@ -46,11 +43,11 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
             {products.map((product) => (
               <li
                 key={product._id}
-                className="flex items-center justify-between p-3 bg-white rounded-lg shadow"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white rounded-lg shadow"
               >
-                {/* content*/}
+                {/* Content */}
                 <div
-                  className="flex items-center gap-3 cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer mb-2 sm:mb-0"
                   onClick={() => router.push(`/product/${product._id}`)}
                 >
                   <Image
@@ -61,24 +58,22 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
                     className="rounded"
                   />
                   <div>
-                    <p className="text-[#8f6551] font-semibold">
-                      {product.title}
-                    </p>
+                    <p className="text-[#8f6551] font-semibold">{product.title}</p>
                     <p className="text-sm text-gray-500">${product.price}</p>
                   </div>
                 </div>
 
-                {/* buttons */}
+                {/* Buttons */}
                 <div className="flex gap-2">
                   <button
                     onClick={() => router.push(`/product/${product._id}`)}
-                    className="text-white bg-[#A47864] hover:bg-[#8f6551] px-3 py-1 rounded transition"
+                    className="text-white bg-[#A47864] hover:bg-[#8f6551] px-2 sm:px-3 py-1 rounded transition text-sm sm:text-base"
                   >
                     View
                   </button>
                   <button
                     onClick={() => removeFromWishlist(product._id)}
-                    className="text-[#A47864] hover:text-red-600 transition font-medium"
+                    className="text-[#A47864] hover:text-red-600 transition font-medium text-sm sm:text-base"
                   >
                     Remove
                   </button>
@@ -87,9 +82,7 @@ const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
             ))}
           </ul>
         ) : (
-          <p className="text-center text-[#8f6551]">
-            Your wishlist is empty.
-          </p>
+          <p className="text-center text-[#8f6551]">Your wishlist is empty.</p>
         )}
       </div>
     </div>
