@@ -26,16 +26,28 @@ export default function OnboardingPage() {
 
       {/* Main content */}
       <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4 font-display">
-        <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row w-full max-w-lg md:max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden mx-auto">
 
           {/* Left: Sign In */}
-          <div className="w-full md:w-1/2 p-4">
+          <div className="w-full md:w-1/2 p-4 flex items-center justify-center">
             <SignInForm />
           </div>
 
           {/* Right: Sign Up prompt */}
-          <div className="w-full md:w-1/2 p-4">
-            <SignUpPrompt onSignUpClick={() => setIsSignUpModalOpen(true)} />
+          <div className="w-full md:w-1/2 p-4 flex items-center justify-center">
+            <div className="hidden md:block w-full">
+              {/* on desketop show all prompt*/}
+              <SignUpPrompt onSignUpClick={() => setIsSignUpModalOpen(true)} />
+            </div>
+            <div className="block md:hidden">
+              {/* on mobile only show register button */}
+              <button
+                onClick={() => setIsSignUpModalOpen(true)}
+                className="w-full px-6 py-3 bg-[#A47864] text-white rounded-lg shadow hover:bg-[#8f6551] transition"
+              >
+                Register
+              </button>
+            </div>
           </div>
         </div>
 

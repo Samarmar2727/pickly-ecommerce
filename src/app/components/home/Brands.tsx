@@ -19,6 +19,7 @@ const Brands = () => {
   const [error, setError] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Fetch brands from API
   useEffect(() => {
     const fetchBrands = async () => {
       try {
@@ -40,9 +41,10 @@ const Brands = () => {
     fetchBrands();
   }, []);
 
+  // Scroll carousel left or right
   const scroll = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = 300;
+      const scrollAmount = 250; // Smaller scroll for mobile
       carouselRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
@@ -63,8 +65,8 @@ const Brands = () => {
       <div className="container mx-auto px-4">
         <SectionHeading title="Shop by Brand" icon="🛍️" />
 
-        <div className="relative">
-          {/* Scroll Buttons */}
+        <div className="relative flex items-center">
+          {/* Left scroll button */}
           <button
             onClick={() => scroll('left')}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
@@ -72,11 +74,12 @@ const Brands = () => {
             <ChevronLeft className="w-5 h-5 text-[#A47864]" />
           </button>
 
+          {/* Carousel container */}
           <div
             ref={carouselRef}
-            className="flex gap-4 sm:gap-6 px-4 sm:px-8 scroll-smooth"
+            className="flex gap-4 px-8 scroll-smooth"
             style={{
-              overflowX: 'auto', // يسمح بالسحب في الموبايل
+              overflowX: 'hidden',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
             }}
@@ -85,13 +88,15 @@ const Brands = () => {
               <Link key={brand._id} href={`/products?brandId=${brand._id}`}>
                 <div
                   className="
-                    min-w-[90px] min-h-[90px] sm:min-w-[120px] sm:min-h-[120px]
+                    min-w-[90px] min-h-[90px]
+                    sm:min-w-[120px] sm:min-h-[120px]
+                    md:min-w-[140px] md:min-h-[140px]
                     bg-white rounded-full p-2 shadow-lg border-2 border-[#A47864]
                     flex items-center justify-center overflow-hidden
                     transition-transform duration-300 hover:scale-110
                   "
                 >
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
                     <Image
                       src={brand.image}
                       alt={brand.name}
@@ -104,6 +109,7 @@ const Brands = () => {
             ))}
           </div>
 
+          {/* Right scroll button */}
           <button
             onClick={() => scroll('right')}
             className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
