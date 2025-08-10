@@ -1,7 +1,9 @@
 "use client";
+
 import { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
 import axios from 'axios';
-
+import { useAuth } from './AuthContext';  // استيراد هوك الأوث
+ 
 //1. (Types)
 
 interface ProductInCart {
@@ -26,47 +28,53 @@ interface CartData {
 interface CartContextType {
   cart: CartData | null;
   isLoading: boolean;
+   isLoggedIn: boolean; 
   addToCart: (productId: string) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateProductQuantity: (productId: string, count: number) => Promise<void>;
   getCart: () => Promise<void>;
 }
 
-// 2.Context
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// 3.Provider 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const API_URL = 'https://ecommerce.routemisr.com/api/v1/cart'
-  const userToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
+  const { isLoggedIn, token } = useAuth();  // جلب الحالة والتوكن من AuthContext
 
-  //a func to get products 
+  const API_URL = 'https://ecommerce.routemisr.com/api/v1/cart';
+
   const getCart = useCallback(async () => {
+    if (!token) return; // إذا ما فيش توكن مش محتاج تجيب الكارت
+
     try {
       setIsLoading(true);
       const response = await axios.get(API_URL, {
-        headers: { token: userToken },
+        headers: { token },
       });
       setCart(response.data.data);
       console.log('Cart fetched:', response.data.data);
     } catch (error) {
       console.error('Failed to fetch cart:', error);
-      setCart(null); 
+      setCart(null);
     } finally {
       setIsLoading(false);
     }
-  }, [userToken]);
+  }, [token]);
 
-  //a fun to add (POST)
   const addToCart = async (productId: string) => {
+    if (!token) {
+      console.warn('User must be logged in to add to cart');
+      return;
+    }
+
     try {
       const response = await axios.post(
         API_URL,
-        { productId: productId },
-        { headers: { token: userToken } }
+        { productId },
+        { headers: { token } }
       );
       setCart(response.data.data);
       console.log('Product added to cart:', response.data.data);
@@ -75,11 +83,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // a func to (DELETE)
   const removeFromCart = async (productId: string) => {
+    if (!token) return;
+
     try {
       const response = await axios.delete(`${API_URL}/${productId}`, {
-        headers: { token: userToken },
+        headers: { token },
       });
       setCart(response.data.data);
       console.log('Product removed from cart:', response.data.data);
@@ -88,13 +97,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // a fun to update a quantatity (PUT)
   const updateProductQuantity = async (productId: string, count: number) => {
+    if (!token) return;
+
     try {
       const response = await axios.put(
         `${API_URL}/${productId}`,
         { count },
-        { headers: { token: userToken } }
+        { headers: { token } }
       );
       setCart(response.data.data);
       console.log('Product quantity updated:', response.data.data);
@@ -103,21 +113,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 4. هات السلة اول ما الprovider يشتغل 
-   useEffect(() => {
-    if (userToken) {
-        getCart();
+  useEffect(() => {
+    if (isLoggedIn) {
+      getCart();
     } else {
-        // لو مفيش توكن، يبقى مفيش سلة
-        setIsLoading(false);
+      setCart(null);
+      setIsLoading(false);
     }
-  }, [userToken,getCart]);
+  }, [isLoggedIn, getCart]);
 
   return (
     <CartContext.Provider
       value={{
         cart,
         isLoading,
+        isLoggedIn,
         addToCart,
         removeFromCart,
         updateProductQuantity,
@@ -129,7 +139,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 5. Hook to store a cart context 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {

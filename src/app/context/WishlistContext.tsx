@@ -2,10 +2,9 @@
 
 import { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
 import axios from 'axios';
-//import { useCart } from './CartContext';
+import { useAuth } from './AuthContext'; // استيراد هوك الأوث
 
-// 1. (Types) 
-
+// 1. Types
 interface ProductInWishlist {
   _id: string;
   title: string;
@@ -27,31 +26,31 @@ interface WishlistData {
 interface WishlistContextType {
   wishlist: WishlistData | null;
   isWishlistLoading: boolean;
+  isLoggedIn: boolean;
   addToWishlist: (productId: string) => Promise<void>;
   removeFromWishlist: (productId: string) => Promise<void>;
   getWishlist: () => Promise<void>;
 }
 
-// 2. (Context)
+// 2. Context
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-// 3. (Provider) 
+// 3. Provider
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlist, setWishlist] = useState<WishlistData | null>(null);
   const [isWishlistLoading, setIsWishlistLoading] = useState(true);
-  const API_URL = 'https://ecommerce.routemisr.com/api/v1/wishlist';
-  const userToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  // استخدام useCallback لتجنب الـ re-render الغير ضروري
+  const { isLoggedIn, token } = useAuth(); // استخدام حالة الدخول والتوكن من الـ AuthContext
+
+  const API_URL = 'https://ecommerce.routemisr.com/api/v1/wishlist';
+
   const getWishlist = useCallback(async () => {
+    if (!token) return;
+
     try {
       setIsWishlistLoading(true);
-      if (!userToken) {
-        setWishlist(null);
-        return;
-      }
       const response = await axios.get(API_URL, {
-        headers: { token: userToken },
+        headers: { token },
       });
       setWishlist(response.data.data);
       console.log('Wishlist fetched:', response.data.data);
@@ -61,48 +60,56 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsWishlistLoading(false);
     }
-  }, [userToken]);
+  }, [token]);
 
   const addToWishlist = useCallback(async (productId: string) => {
+    if (!token) {
+      console.warn('User must be logged in to add to wishlist');
+      return;
+    }
+
     try {
       const response = await axios.post(
         API_URL,
         { productId },
-        { headers: { token: userToken } }
+        { headers: { token } }
       );
       setWishlist(response.data.data);
       console.log('Product added to wishlist:', response.data.data);
     } catch (error) {
       console.error('Failed to add product to wishlist:', error);
     }
-  }, [userToken]);
+  }, [token]);
 
   const removeFromWishlist = useCallback(async (productId: string) => {
+    if (!token) return;
+
     try {
       const response = await axios.delete(`${API_URL}/${productId}`, {
-        headers: { token: userToken },
+        headers: { token },
       });
       setWishlist(response.data.data);
       console.log('Product removed from wishlist:', response.data.data);
     } catch (error) {
       console.error('Failed to remove product from wishlist:', error);
     }
-  }, [userToken]);
+  }, [token]);
 
-  // ✅ جلب الويشليست عند تحميل الـ Provider أو تغير الـ Token
   useEffect(() => {
-    if (userToken) {
+    if (isLoggedIn) {
       getWishlist();
     } else {
+      setWishlist(null);
       setIsWishlistLoading(false);
     }
-  }, [userToken, getWishlist]);
+  }, [isLoggedIn, getWishlist]);
 
   return (
     <WishlistContext.Provider
       value={{
         wishlist,
         isWishlistLoading,
+        isLoggedIn,
         addToWishlist,
         removeFromWishlist,
         getWishlist,
@@ -113,7 +120,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 4. (Hook)
+// 4. Hook
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (context === undefined) {

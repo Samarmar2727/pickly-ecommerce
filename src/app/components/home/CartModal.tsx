@@ -13,6 +13,10 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { cart, isLoading, removeFromCart, updateProductQuantity } = useCart();
   const router = useRouter();
 
+
+  if (!isOpen) return null;
+
+
   if (isLoading) {
     return <div className="p-4 text-center text-gray-700">Loading cart...</div>;
   }
@@ -27,7 +31,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col bg-[#faebd7]">
+     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-[#faebd7] p-6 rounded-lg w-full max-w-md h-[80vh] overflow-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-[#A47864]">Shopping Cart</h2>
         <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
@@ -91,6 +96,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
           Proceed to Checkout
         </button>
       </div>
+    </div>
     </div>
   );
 };

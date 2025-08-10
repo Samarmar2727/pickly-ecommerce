@@ -76,7 +76,7 @@ const Brands = () => {
             ref={carouselRef}
             className="flex gap-6 px-8 scroll-smooth"
             style={{
-              overflowX: 'hidden', // <-- هنا منعنا السكرول
+              overflowX: 'hidden',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
             }}

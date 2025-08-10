@@ -1,4 +1,4 @@
-
+import { AuthProvider } from './context/AuthContext';  
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import "./globals.css";
@@ -8,12 +8,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-white text-{#1f2937}">
         <main>
-          <CartProvider>
-            <WishlistProvider>
-               {children}
-            </WishlistProvider>
-        </CartProvider>
-          </main>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                {children}
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </main>
       </body>
     </html>
   );

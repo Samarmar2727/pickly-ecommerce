@@ -113,32 +113,46 @@ const Products = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
 
   // Custom hooks for cart and wishlist functionality
-  const { addToCart, isLoading: isCartLoading } = useCart();
-  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart, isLoading: isCartLoading, isLoggedIn: isCartLoggedIn } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist, isLoggedIn: isWishlistLoggedIn } = useWishlist();
+
+  // Use one isLoggedIn flag, assuming both contexts are synced
+  const isLoggedIn = isCartLoggedIn || isWishlistLoggedIn;
 
   // Handler for adding a product to the cart
   const handleAddToCart = (e: React.MouseEvent, productId: string) => {
-    // Prevent the parent Link from navigating
     e.preventDefault();
+
+    if (!isLoggedIn) {
+      alert('Please log in to add items to your cart.');
+      router.push('/');  // Redirect to login page
+      return;
+    }
     addToCart(productId);
   };
 
   // Helper function to check if a product is in the wishlist
   const isProductInWishlist = (productId: string) => {
-    // Check if wishlist exists and if the product ID is present
-    return wishlist?.products.some(item => item._id === productId) || false;
-  };
+  return wishlist?.products?.some(item => item._id === productId) ?? false;
+};
+
 
   // Handler for adding/removing a product from the wishlist
   const handleWishlistClick = (e: React.MouseEvent, productId: string) => {
-    e.preventDefault(); // Prevent parent Link from navigating
+    e.preventDefault();
+
+    if (!isLoggedIn) {
+      alert('Please log in to manage your wishlist.');
+      router.push('/');
+      return;
+    }
+
     if (isProductInWishlist(productId)) {
-      // If product is already in wishlist, remove it
       removeFromWishlist(productId);
     } else {
-      // Otherwise, add it
       addToWishlist(productId);
     }
   };
@@ -158,7 +172,7 @@ const Products = () => {
       }
     };
     fetchFilters();
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); 
 
   // Memoized function to fetch products based on filters and pagination
   const fetchProducts = useCallback(async (append = false) => {
@@ -183,7 +197,6 @@ const Products = () => {
         setProducts(fetched);
       }
 
-      // Check if there are more products to load
       if (fetched.length < 12) {
         setHasMore(false);
       } else {
@@ -215,7 +228,6 @@ const Products = () => {
     }
   }, [page, fetchProducts]);
 
-  // --- Render Section ---
   return (
     <section className="py-10 bg-[#faebd7]">
       <div className="container mx-auto px-4">
@@ -235,12 +247,11 @@ const Products = () => {
         />
 
         <Filters categories={categories} brands={brands} />
-        {/* Display error message if fetching fails */}
+
         {error && (
           <p className="text-center text-red-500 text-lg">{error}</p>
         )}
 
-        {/* Conditional rendering based on products availability */}
         {products.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">No products found.</p>
         ) : (
@@ -259,11 +270,12 @@ const Products = () => {
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
                     New
                   </span>
+
                   {/* Wishlist icon with dynamic styling */}
                   <HeartIcon
                     onClick={(e) => handleWishlistClick(e, product._id)}
                     className={`
-                      absolute top-2 right-2 p-1 rounded-full shadow-sm z-10 transition-colors
+                      absolute top-2 right-2 p-1 w-5 h-5 rounded-full shadow-sm z-10 transition-colors
                       ${
                         isProductInWishlist(product._id)
                           ? 'bg-[#A47864] text-white'
@@ -271,6 +283,7 @@ const Products = () => {
                       }
                     `}
                   />
+
                   <div className="relative w-full h-64 overflow-hidden">
                     <Image
                       src={product.imageCover}
@@ -280,6 +293,7 @@ const Products = () => {
                       className="rounded-t-2xl transition-transform duration-300 ease-in-out group-hover:scale-110"
                     />
                   </div>
+
                   <div className="p-4 flex flex-col justify-between h-48">
                     <div>
                       <h3 className="text-lg font-semibold text-[#A47864] mb-1 line-clamp-2">
@@ -287,15 +301,17 @@ const Products = () => {
                       </h3>
                       <p className="text-sm text-gray-500 mb-3">{product.category.name}</p>
                     </div>
+
                     <div className="flex justify-between items-center mt-auto">
                       <span className="text-xl font-bold text-[#A47864]">
                         ${product.price.toFixed(2)}
                       </span>
+
                       {/* Add to Cart button */}
                       <button
                         onClick={(e) => handleAddToCart(e, product._id)}
-                        disabled={isCartLoading}
-                        className="bg-[#A47864] text-white py-1.5 px-4 rounded-full hover:bg-[#C0D6E4] hover:text-[#A47864] transition duration-300 text-sm"
+                        disabled={isCartLoading || !isLoggedIn}
+                        className="bg-[#A47864] text-white py-1.5 px-4 rounded-full hover:bg-[#C0D6E4] hover:text-[#A47864] transition duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Add to Cart
                       </button>
@@ -314,7 +330,7 @@ const Products = () => {
           <button
             onClick={() => setPage((prev) => prev + 1)}
             disabled={loading}
-            className="bg-[#A47864] text-white px-6 py-2 rounded hover:bg-[#8c5c4e] transition"
+            className="bg-[#A47864] text-white px-6 py-2 rounded hover:bg-[#8c5c4e] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Loading..." : "Load More"}
           </button>
