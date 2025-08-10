@@ -98,14 +98,12 @@ const Filters = ({ categories, brands }: { categories: Category[]; brands: Brand
 
 // --- Products Component (Main component for displaying products) ---
 const Products = () => {
-  // Get filter parameters from URL search params
   const searchParams = useSearchParams();
-  const categoryId = searchParams.get('categoryId');
-  const brandId = searchParams.get('brandId');
-  const keyword = searchParams.get('keyword');
-  const subcategoryId = searchParams.get('subcategoryId');
+  const categoryId = searchParams.get("categoryId");
+  const brandId = searchParams.get("brandId");
+  const keyword = searchParams.get("keyword");
+  const subcategoryId = searchParams.get("subcategoryId");
 
-  // Local state management for products, filters, and UI feedback
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -115,113 +113,121 @@ const Products = () => {
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
-  // Custom hooks for cart and wishlist functionality
-  const { addToCart, isLoading: isCartLoading, isLoggedIn: isCartLoggedIn } = useCart();
-  const { wishlist, addToWishlist, removeFromWishlist, isLoggedIn: isWishlistLoggedIn } = useWishlist();
+  const {
+    addToCart,
+    isLoading: isCartLoading,
+    isLoggedIn: isCartLoggedIn,
+  } = useCart();
+  const {
+    wishlist,
+    addToWishlist,
+    removeFromWishlist,
+    isLoggedIn: isWishlistLoggedIn,
+  } = useWishlist();
 
-  // Use one isLoggedIn flag, assuming both contexts are synced
   const isLoggedIn = isCartLoggedIn || isWishlistLoggedIn;
 
-  // Handler for adding a product to the cart
+  // --- Add to Cart Handler ---
   const handleAddToCart = (e: React.MouseEvent, productId: string) => {
     e.preventDefault();
-
     if (!isLoggedIn) {
-      alert('Please log in to add items to your cart.');
-      router.push('/');  // Redirect to login page
+      alert("Please log in to add items to your cart.");
+      router.push("/");
       return;
     }
     addToCart(productId);
   };
 
-  // Helper function to check if a product is in the wishlist
-  const isProductInWishlist = (productId: string) => {
-  return wishlist?.products?.some(item => item._id === productId) ?? false;
-};
+  // --- Check if product is in wishlist ---
+  const isProductInWishlist = (productId: string) =>
+    wishlist?.products?.some((item) => item._id === productId) ?? false;
 
-
-  // Handler for adding/removing a product from the wishlist
-  const handleWishlistClick = (e: React.MouseEvent, productId: string) => {
+  // --- Wishlist Toggle Handler ---
+  const handleWishlistClick = async (
+    e: React.MouseEvent,
+    productId: string
+  ) => {
     e.preventDefault();
 
     if (!isLoggedIn) {
-      alert('Please log in to manage your wishlist.');
-      router.push('/');
+      alert("Please log in to manage your wishlist.");
+      router.push("/");
       return;
     }
 
-    if (isProductInWishlist(productId)) {
-      removeFromWishlist(productId);
-    } else {
-      addToWishlist(productId);
+    try {
+      if (isProductInWishlist(productId)) {
+        await removeFromWishlist(productId);
+      } else {
+        await addToWishlist(productId);
+      }
+    } catch (err) {
+      console.error("Wishlist update failed:", err);
     }
   };
 
-  // Effect to fetch categories and brands on initial load
+  // --- Fetch filters (categories & brands) ---
   useEffect(() => {
     const fetchFilters = async () => {
       try {
         const [catsRes, brandsRes] = await Promise.all([
-          axios.get('https://ecommerce.routemisr.com/api/v1/categories'),
-          axios.get('https://ecommerce.routemisr.com/api/v1/brands'),
+          axios.get("https://ecommerce.routemisr.com/api/v1/categories"),
+          axios.get("https://ecommerce.routemisr.com/api/v1/brands"),
         ]);
         setCategories(catsRes.data.data);
         setBrands(brandsRes.data.data);
       } catch (error) {
-        console.error(error, 'Failed to fetch filters');
+        console.error("Failed to fetch filters", error);
       }
     };
     fetchFilters();
-  }, []); 
+  }, []);
 
-  // Memoized function to fetch products based on filters and pagination
-  const fetchProducts = useCallback(async (append = false) => {
-    try {
-      setLoading(true);
-      const params: Record<string, string | number> = {
-        limit: 12,
-        page,
-      };
+  // --- Fetch products ---
+  const fetchProducts = useCallback(
+    async (append = false) => {
+      try {
+        setLoading(true);
+        const params: Record<string, string | number> = {
+          limit: 12,
+          page,
+        };
+        if (keyword) params["keyword"] = keyword;
+        if (categoryId) params["category[in]"] = categoryId;
+        if (brandId) params["brand"] = brandId;
+        if (subcategoryId) params["subcategory"] = subcategoryId;
 
-      if (keyword) params['keyword'] = keyword;
-      if (categoryId) params['category[in]'] = categoryId;
-      if (brandId) params['brand'] = brandId;
-      if (subcategoryId) params['subcategory'] = subcategoryId;
+        const response = await axios.get(
+          "https://ecommerce.routemisr.com/api/v1/products",
+          { params }
+        );
+        const fetched = response.data.data;
 
-      const response = await axios.get('https://ecommerce.routemisr.com/api/v1/products', { params });
-
-      const fetched = response.data.data;
-      if (append) {
-        setProducts((prev) => [...prev, ...fetched]);
-      } else {
-        setProducts(fetched);
+        setProducts((prev) =>
+          append ? [...prev, ...fetched] : fetched
+        );
+        setHasMore(fetched.length >= 12);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || "Failed to fetch products.");
+        } else {
+          setError("An unexpected error occurred.");
+        }
+      } finally {
+        setLoading(false);
       }
+    },
+    [categoryId, brandId, keyword, subcategoryId, page]
+  );
 
-      if (fetched.length < 12) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const message = err.response?.data?.message || 'Failed to fetch products.';
-        setError(message);
-      } else {
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [categoryId, brandId, keyword, subcategoryId, page]);
-
-  // Effect to refetch products when filters change (resets page to 1)
+  // --- Refetch on filter change ---
   useEffect(() => {
     setProducts([]);
     setPage(1);
     fetchProducts(false);
   }, [categoryId, brandId, keyword, subcategoryId, fetchProducts]);
 
-  // Effect to fetch the next page of products when the page state changes
+  // --- Fetch next page ---
   useEffect(() => {
     if (page > 1) {
       fetchProducts(true);
@@ -236,52 +242,49 @@ const Products = () => {
             keyword
               ? `Search results for "${keyword}"`
               : subcategoryId
-              ? 'Filtered by Subcategory'
+              ? "Filtered by Subcategory"
               : categoryId
-              ? 'Filtered by Category'
+              ? "Filtered by Category"
               : brandId
-              ? 'Filtered by Brand'
-              : 'All Products'
+              ? "Filtered by Brand"
+              : "All Products"
           }
           icon="🛍️"
         />
 
         <Filters categories={categories} brands={brands} />
 
-        {error && (
-          <p className="text-center text-red-500 text-lg">{error}</p>
-        )}
+        {error && <p className="text-center text-red-500 text-lg">{error}</p>}
 
         {products.length === 0 ? (
-          <p className="text-center text-gray-500 text-lg">No products found.</p>
+          <p className="text-center text-gray-500 text-lg">
+            No products found.
+          </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product, index) => (
               <Link key={product._id} href={`/products/${product._id}`}>
                 <div
-                  className={`
-                    bg-white rounded-2xl shadow-md overflow-hidden border border-[#C0D6E4]
-                    transform transition-all duration-300 ease-in-out hover:scale-105
-                    cursor-pointer animate-zoom-in
-                    relative group
-                  `}
-                  style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
+                  className="bg-white rounded-2xl shadow-md overflow-hidden border border-[#C0D6E4]
+                    transform transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer
+                    animate-zoom-in relative group"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animationFillMode: "both",
+                  }}
                 >
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full z-10">
                     New
                   </span>
 
-                  {/* Wishlist icon with dynamic styling */}
                   <HeartIcon
                     onClick={(e) => handleWishlistClick(e, product._id)}
-                    className={`
-                      absolute top-2 right-2 p-1 w-5 h-5 rounded-full shadow-sm z-10 transition-colors
+                    className={`absolute top-2 right-2 p-1 w-5 h-5 rounded-full shadow-sm z-10 transition-colors cursor-pointer
                       ${
                         isProductInWishlist(product._id)
-                          ? 'bg-[#A47864] text-white'
-                          : 'bg-white text-[#A47864]'
-                      }
-                    `}
+                          ? "bg-[#A47864] text-white"
+                          : "bg-white text-[#A47864]"
+                      }`}
                   />
 
                   <div className="relative w-full h-64 overflow-hidden">
@@ -299,15 +302,15 @@ const Products = () => {
                       <h3 className="text-lg font-semibold text-[#A47864] mb-1 line-clamp-2">
                         {product.title}
                       </h3>
-                      <p className="text-sm text-gray-500 mb-3">{product.category.name}</p>
+                      <p className="text-sm text-gray-500 mb-3">
+                        {product.category.name}
+                      </p>
                     </div>
 
                     <div className="flex justify-between items-center mt-auto">
                       <span className="text-xl font-bold text-[#A47864]">
                         ${product.price.toFixed(2)}
                       </span>
-
-                      {/* Add to Cart button */}
                       <button
                         onClick={(e) => handleAddToCart(e, product._id)}
                         disabled={isCartLoading || !isLoggedIn}
@@ -324,7 +327,6 @@ const Products = () => {
         )}
       </div>
 
-      {/* "Load More" button for pagination */}
       {hasMore && (
         <div className="text-center mt-8">
           <button

@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useWishlist } from "../../context/WishlistContext";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -10,53 +12,85 @@ interface WishlistModalProps {
 
 const WishlistModal: React.FC<WishlistModalProps> = ({ isOpen, onClose }) => {
   const { wishlist, isWishlistLoading, removeFromWishlist } = useWishlist();
+  const router = useRouter();
 
   if (!isOpen) return null;
 
-  // تأمين wishlist.products دايمًا تكون مصفوفة
-  const products = wishlist?.products ?? [];
+  const products = Array.isArray(wishlist?.products) ? wishlist.products : [];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-lg max-w-lg w-full relative">
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-2 right-2 text-[#A47864] hover:text-[#8f6551] text-2xl font-bold transition"
-          >
-            &times;
-          </button>
+    <div
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#C0D6E4] p-6 rounded-lg shadow-lg max-w-lg w-full relative max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-[#A47864] hover:text-[#8f6551] text-2xl font-bold transition"
+        >
+          &times;
+        </button>
 
-          <h2 className="text-2xl font-bold mb-4 text-[#A47864]">
-            Your Wishlist
-          </h2>
+        <h2 className="text-2xl font-bold mb-4 text-[#A47864]">
+          Your Wishlist
+        </h2>
 
-          {isWishlistLoading ? (
-            <p className="text-center text-[#8f6551]">Loading...</p>
-          ) : products.length > 0 ? (
-            <ul>
-              {products.map((product) => (
-                <li
-                  key={product._id}
-                  className="flex items-center justify-between py-2 border-b border-[#A47864]"
+        {isWishlistLoading ? (
+          <p className="text-center text-[#8f6551]">Loading...</p>
+        ) : products.length > 0 ? (
+          <ul className="space-y-4">
+            {products.map((product) => (
+              <li
+                key={product._id}
+                className="flex items-center justify-between p-3 bg-white rounded-lg shadow"
+              >
+                {/* content*/}
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => router.push(`/product/${product._id}`)}
                 >
-                  <span className="text-lg text-[#8f6551]">{product.title}</span>
+                  <Image
+                    src={product.imageCover}
+                    alt={product.title}
+                    width={50}
+                    height={50}
+                    className="rounded"
+                  />
+                  <div>
+                    <p className="text-[#8f6551] font-semibold">
+                      {product.title}
+                    </p>
+                    <p className="text-sm text-gray-500">${product.price}</p>
+                  </div>
+                </div>
+
+                {/* buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push(`/product/${product._id}`)}
+                    className="text-white bg-[#A47864] hover:bg-[#8f6551] px-3 py-1 rounded transition"
+                  >
+                    View
+                  </button>
                   <button
                     onClick={() => removeFromWishlist(product._id)}
-                    className="ml-4 text-[#A47864] hover:text-red-600 transition font-medium"
+                    className="text-[#A47864] hover:text-red-600 transition font-medium"
                   >
                     Remove
                   </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-[#8f6551]">
-              Your wishlist is empty.
-            </p>
-          )}
-        </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center text-[#8f6551]">
+            Your wishlist is empty.
+          </p>
+        )}
       </div>
     </div>
   );

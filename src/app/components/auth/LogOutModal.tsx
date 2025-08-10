@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
     return(
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-xl p-6 w-[90%] max-w-sm">
-        <h2 className="text-lg font-semibold mb-4 text-center">Are you sure you want to logout?</h2>
+        <h2 className="text-lg font-semibold mb-4 text-center text-black">Are you sure you want to logout?</h2>
         <div className="flex justify-center gap-4">
           <button
             onClick={handleLogout}
