@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import SectionHeading from "../SectionHeading";
-import Image from 'next/image';
-import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Brand {
   _id: string;
@@ -22,15 +22,18 @@ const Brands = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await axios.get('https://ecommerce.routemisr.com/api/v1/brands');
+        const response = await axios.get(
+          "https://ecommerce.routemisr.com/api/v1/brands"
+        );
         setBrands(response.data.data);
         setLoading(false);
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          const message = err.response?.data?.message || 'Failed to fetch brands.';
+          const message =
+            err.response?.data?.message || "Failed to fetch brands.";
           setError(message);
         } else {
-          setError('An unexpected error occurred.');
+          setError("An unexpected error occurred.");
         }
       } finally {
         setLoading(false);
@@ -40,18 +43,41 @@ const Brands = () => {
     fetchBrands();
   }, []);
 
-  const scroll = (direction: 'left' | 'right') => {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.hidden) return; // if tap not active (performance)
+      if (carouselRef.current) {
+        const container = carouselRef.current;
+        const maxScrollLeft = container.scrollWidth - container.clientWidth;
+
+        // if reachout  to end return to start
+        if (container.scrollLeft >= maxScrollLeft - 10) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 200, behavior: "smooth" });
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = 300;
       carouselRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
       });
     }
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-[#A47864] animate-pulse">Loading brands...</div>;
+    return (
+      <div className="text-center py-8 text-[#A47864] animate-pulse">
+        Loading brands...
+      </div>
+    );
   }
 
   if (error) {
@@ -66,20 +92,15 @@ const Brands = () => {
         <div className="relative">
           {/* Scroll Buttons */}
           <button
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
+            onClick={() => scroll("left")}
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
           >
             <ChevronLeft className="w-5 h-5 text-[#A47864]" />
           </button>
 
           <div
             ref={carouselRef}
-            className="flex gap-6 px-8 scroll-smooth"
-            style={{
-              overflowX: 'hidden',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
+            className="flex gap-6 scroll-smooth overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden w-screen -mx-4 px-4 touch-pan-x"
           >
             {brands.map((brand) => (
               <Link key={brand._id} href={`/products?brandId=${brand._id}`}>
@@ -105,8 +126,8 @@ const Brands = () => {
           </div>
 
           <button
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
+            onClick={() => scroll("right")}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md"
           >
             <ChevronRight className="w-5 h-5 text-[#A47864]" />
           </button>
