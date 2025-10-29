@@ -100,7 +100,7 @@ const Brands = () => {
 
           <div
             ref={carouselRef}
-            className="flex gap-6 scroll-smooth overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden w-screen -mx-4 px-4 touch-pan-x"
+            className="flex gap-6 scroll-smooth overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden w-screen md:w-auto px-4 touch-pan-x md:overflow-hidden"
           >
             {brands.map((brand) => (
               <Link key={brand._id} href={`/products?brandId=${brand._id}`}>
