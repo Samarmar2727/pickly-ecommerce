@@ -10,8 +10,8 @@ const SignUpPrompt = ({ onSignUpClick }: SignUpPromptProps) => {
     // The main container for the Sign Up section.
     // It's still 1/2 width but has a `relative` position for the pseudo-element.
      <div 
-      className="w-1/2 bg-[#A47864] text-white p-12 relative overflow-hidden flex flex-col justify-center items-center rounded-r-xl"
-      style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 15% 100%, 0% 50%)' }}
+      className="w-1/2 bg-[#A47864] text-white p-12 sm:p-6 xs:p-4 relative overflow-hidden flex flex-col justify-center items-center rounded-r-xl"
+      style={{  clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 15% 100%, 0% 50%)' }}
     >
       {/* Content for the Sign Up section. We use a higher z-index to ensure it's visible. */}
       <h2 className="text-3xl font-display font-bold mb-4 z-10 text-center">Hello, Friend!</h2>

@@ -26,7 +26,7 @@ const messages = [
   </div>
 </div>
 
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4 font-display">
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-gray-100 p-4 font-display">
       <div className="flex w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden">
         
         {/* Left part: Sign In section. */}

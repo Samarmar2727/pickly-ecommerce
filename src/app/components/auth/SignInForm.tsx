@@ -10,7 +10,7 @@ const SignInForm = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-    const [showResetModal, setShowResetModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const router = useRouter();
 
   // useEffect hook to check for an existing token on component mount.
@@ -67,10 +67,10 @@ const SignInForm = () => {
 
   return (
     
-    <section className="w-1/2 p-12 flex items-center justify-center bg-white px-4 py-12">
+    <section className="w-1/2 p-12 sm:p-8 xs:p-4 flex items-center justify-center bg-white px-4 py-12">
       <div>
         {/* Sign-in title. */}
-        <h2 className="text-3xl font-bold text-text-primary mb-6 text-center">
+        <h2 className="text-3xl sm:text-2xl font-bold text-red-500 mb-6 text-center">
           Sign In
         </h2>
 
@@ -85,17 +85,17 @@ const SignInForm = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
         {/* Social media sign-in buttons section. */}
             <div className="flex items-center justify-center space-x-4">
-            <button className="p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Google">
-              <FaGoogle className="w-5 h-5 text-[#DB4437]" />
+            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Google">
+              <FaGoogle className="w-5 h-5 sm:w-4 sm:h-4 text-[#DB4437]" />
             </button>
-            <button className="p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Facebook">
-              <FaFacebookF className="w-5 h-5 text-[#4267B2]" />
+            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Facebook">
+              <FaFacebookF className="w-5 h-5 sm:w-4 sm:h-4 text-[#4267B2]" />
             </button>
-            <button className="p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with LinkedIn">
-              <FaLinkedinIn className="w-5 h-5 text-[#0077B5]" />
+            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with LinkedIn">
+              <FaLinkedinIn className="w-5 h-5 sm:w-4 sm:h-4 text-[#0077B5]" />
             </button>
-            <button className="p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with GitHub">
-              <FaGithub className="w-5 h-5 text-black" />
+            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with GitHub">
+              <FaGithub className="w-5 h-5 sm:w-4 sm:h-4 text-black" />
             </button>
           </div>
           <div className="flex items-center justify-center text-gray-500">
@@ -116,7 +116,7 @@ const SignInForm = () => {
               required
               onChange={handleChange}
               // Apply custom focus ring color.
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
+              className="w-full px-4 py-2 sm:px-3 sm:py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
             />
           </div>
 
@@ -131,7 +131,7 @@ const SignInForm = () => {
               type="password"
               required
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
+              className="w-full px-4 py-2 sm:px-3 sm:py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
             />
           </div>
 
@@ -146,7 +146,7 @@ const SignInForm = () => {
           {/* Submit button for sign-in. */}
           <button
             type="submit"
-            className="w-full bg-[#A47864] text-white py-2 rounded-lg font-semibold hover:bg-[#C0D6E4] hover:text-white cursor-pointer transition transition-colors flex justify-center disabled:bg-opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-[#A47864] text-white py-2 sm:py-1.5 rounded-lg font-semibold  text-base sm:text-sm hover:bg-[#C0D6E4] hover:text-white cursor-pointer transition transition-colors flex justify-center disabled:bg-opacity-70 disabled:cursor-not-allowed"
             disabled={loading} // Disable button when loading.
           >
             {loading ? 'Loading...' : 'Log In'} {/* Button text changes based on loading state. */}

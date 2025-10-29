@@ -5,6 +5,14 @@ clip-path: polygon(0 0, 100% 0, 100% 90%, 50% 100%, 0 90%);
 }
 
 
+
+.category-dropdown {
+  position: fixed !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out both;
