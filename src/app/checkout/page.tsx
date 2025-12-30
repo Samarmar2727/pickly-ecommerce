@@ -121,90 +121,158 @@ const CheckoutPage: React.FC = () => {
 
   // Rendering
   return (
-    <div className="min-h-screen p-6 bg-[#faebd7]">
-      <div className="container mx-auto max-w-2xl">
-        <h1 className="text-4xl font-bold text-[#A47864] mb-8 text-center">Checkout</h1>
+ <div className="min-h-screen p-6 bg-[#faebd7]">
+  <div className="container mx-auto max-w-3xl">
+    <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-[#A47864] mb-12">
+      Checkout
+    </h1>
 
-        {/* 1. Shipping Details Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Shipping Details</h2>
-
-          {showAddressForm ? (
-            <form onSubmit={addNewAddressHandler} className="space-y-4">
-              <h4 className="text-lg font-medium text-[#A47864]">Add a New Address</h4>
-              <input type="text" placeholder="Name (e.g., Home)" value={newAddress.name} onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="text" placeholder="Details (Street, Building)" value={newAddress.details} onChange={(e) => setNewAddress({ ...newAddress, details: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="tel" placeholder="Phone" value={newAddress.phone} onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <input type="text" placeholder="City" value={newAddress.city} onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} required className="w-full p-2 border border-[#A47864] rounded-md bg-white text-[#A47864] placeholder-[#8f6551] focus:outline-none focus:ring-2 focus:ring-[#A47864]" />
-              <button type="submit" className="w-full bg-[#A47864] text-white px-4 py-3 rounded-lg shadow hover:bg-[#8f6551] transition disabled:bg-gray-400">Save Address</button>
-            </form>
-          ) : (
-            <div>
-              <h4 className="text-lg font-medium text-[#A47864]">Choose an Address</h4>
-              <div className="space-y-2">
-                {addresses.map((address) => (
-                  <div key={address._id} className="address-item flex items-center p-3 border border-[#A47864] rounded-md bg-white">
-                    <input
-                      type="radio"
-                      id={address._id}
-                      name="shipping-address"
-                      checked={selectedAddress?._id === address._id}
-                      onChange={() => setSelectedAddress(address)}
-                      className="mr-2 accent-[#A47864]"
-                    />
-                    <label htmlFor={address._id} className="text-[#8f6551]">
-                      <strong>{address.name}</strong>: {address.details}, {address.city}, {address.phone}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => setShowAddressForm(true)} className="mt-4 text-[#A47864] hover:underline font-medium">Add New Address</button>
-            </div>
-          )}
-        </div>
-
-        {/* 2. Order Summary Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md mb-6">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Order Summary</h2>
-          <div className="space-y-4">
-            {cart.products.map((item) => (
-              <div key={item.product._id} className="flex justify-between items-center border-b border-[#A47864] pb-2 text-[#8f6551]">
-                <div className="flex items-center">
-                  <span className="font-medium text-[#A47864]">{item.product.title}</span>
-                  <span className="text-sm ml-2">x{item.count}</span>
+    {/* --- Shipping Details --- */}
+    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
+      <h2 className="text-2xl font-semibold text-[#A47864] mb-6">Shipping Details</h2>
+      {showAddressForm ? (
+        <form onSubmit={addNewAddressHandler} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Name (Home, Office...)"
+            value={newAddress.name}
+            onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
+            required
+            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
+          />
+          <input
+            type="text"
+            placeholder="Street, Building, Floor..."
+            value={newAddress.details}
+            onChange={(e) => setNewAddress({ ...newAddress, details: e.target.value })}
+            required
+            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
+          />
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={newAddress.phone}
+            onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+            required
+            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={newAddress.city}
+            onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+            required
+            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
+          />
+          <button
+            type="submit"
+            className="w-full bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold"
+          >
+            Save Address
+          </button>
+        </form>
+      ) : (
+        <div className="space-y-3">
+          {addresses.map((address) => (
+            <label
+              key={address._id}
+              className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition hover:shadow-md ${
+                selectedAddress?._id === address._id
+                  ? 'border-[#A47864] shadow-lg bg-[#f9f9f9]'
+                  : 'border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="shipping-address"
+                  checked={selectedAddress?._id === address._id}
+                  onChange={() => setSelectedAddress(address)}
+                  className="accent-[#A47864]"
+                />
+                <div className="text-[#8f6551]">
+                  <p className="font-semibold">{address.name}</p>
+                  <p className="text-sm">{address.details}, {address.city}</p>
+                  <p className="text-sm">{address.phone}</p>
                 </div>
-                <span className="font-semibold text-[#A47864]">{(item.product.price * item.count).toFixed(2)} EGP</span>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t-2 border-[#A47864] flex justify-between items-center">
-            <span className="text-xl font-bold text-[#A47864]">Total Price:</span>
-            <span className="text-2xl font-bold text-[#A47864]">{cart.totalCartPrice} EGP</span>
-          </div>
+            </label>
+          ))}
+          <button
+            onClick={() => setShowAddressForm(true)}
+            className="mt-4 text-[#A47864] hover:underline font-medium"
+          >
+            + Add New Address
+          </button>
         </div>
+      )}
+    </div>
 
-        {/* 3. Payment Method Section */}
-        <div className="bg-[#C0D6E4] p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Payment Method</h2>
-          <div className="flex space-x-4">
-            <button
-              onClick={createCashOrder}
-              disabled={!selectedAddress || isProcessingOrder}
-              className="flex-1 bg-[#A47864] text-white px-6 py-3 rounded-lg shadow hover:bg-[#8f6551] transition disabled:bg-gray-400"
-            >
-              {isProcessingOrder ? 'Processing...' : 'Pay on Delivery'}
-            </button>
-            <button
-              onClick={createOnlineCheckoutSession}
-              disabled={!selectedAddress || isProcessingOrder}
-              className="flex-1 bg-[#A47864] text-white px-6 py-3 rounded-lg shadow hover:bg-[#8f6551] transition disabled:bg-gray-400"
-            >
-              {isProcessingOrder ? 'Processing...' : 'Pay Online'}
-            </button>
+    {/* --- Order Summary --- */}
+    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
+      <h2 className="text-2xl font-semibold text-[#A47864] mb-6">Order Summary</h2>
+      <div className="divide-y divide-gray-200">
+        {cart.products.map((item) => (
+          <div key={item.product._id} className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-4">
+              <img
+                src={item.product.imageCover}
+                alt={item.product.title}
+                className="w-16 h-16 object-cover rounded-lg shadow"
+              />
+              <div className="flex flex-col">
+                <span className="font-semibold text-[#A47864]">{item.product.title}</span>
+                <span className="text-sm text-gray-500">x{item.count}</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end">
+              {item.product.discount ? (
+                <>
+                  <span className="text-sm line-through text-gray-400">
+                    {(item.product.price).toFixed(2)} $
+                  </span>
+                  <span className="font-semibold text-[#A47864]">
+                    {(item.product.price * (1 - item.product.discount / 100) * item.count).toFixed(2)} EGP
+                  </span>
+                </>
+              ) : (
+                <span className="font-semibold text-[#A47864]">
+                  {(item.price * item.count).toFixed(2)} $
+                </span>
+              )}
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
+      <div className="mt-6 pt-4 border-t-2 border-gray-200 flex justify-between items-center">
+        <span className="text-xl font-bold text-[#A47864]">Total:</span>
+        <span className="text-2xl font-bold text-[#A47864]">{cart.totalCartPrice} $</span>
       </div>
     </div>
+
+    {/* --- Payment Method --- */}
+    <div className="bg-white p-6 rounded-2xl shadow-lg">
+      <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Payment Method</h2>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={createCashOrder}
+          disabled={!selectedAddress || isProcessingOrder}
+          className="flex-1 bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold disabled:bg-gray-400"
+        >
+          {isProcessingOrder ? 'Processing...' : 'Pay on Delivery'}
+        </button>
+        <button
+          onClick={createOnlineCheckoutSession}
+          disabled={!selectedAddress || isProcessingOrder}
+          className="flex-1 bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold disabled:bg-gray-400"
+        >
+          {isProcessingOrder ? 'Processing...' : 'Pay Online'}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   );
 };
 

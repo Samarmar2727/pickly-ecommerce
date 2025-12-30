@@ -92,7 +92,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                       {item.product.title}
                     </h3>
                    <p className="text-base font-semibold text-[#A47864] mt-1">
-                      {item.product.price} EGP
+                      {item.price} $
+                      
                     </p>
 
 
@@ -125,7 +126,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
 
                         {/* Item Price */}
                         <p className="text-base font-semibold text-grey-500 mt-1">
-                          {item.product.price} EGP
+                          {item.product.price} $
                         </p>
 
                       {/* Remove */}
@@ -149,7 +150,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Total</span>
               <span className="text-lg font-semibold text-gray-800">
-                {cart.totalCartPrice} EGP
+                {cart.totalCartPrice} $
               </span>
             </div>
             <button
