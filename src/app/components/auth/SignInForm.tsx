@@ -1,11 +1,15 @@
-'use client'; 
+use client'; 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; 
 import axios from 'axios';
 import { FaGoogle, FaFacebookF, FaLinkedinIn, FaGithub } from 'react-icons/fa';
 import ResetPasswordModal from './ResetPasswordModal';
 
-const SignInForm = () => {
+type SignInFormProps = {
+  onSignUpClick?: () => void; // to open sign Up Modal
+};
+
+const SignInForm = ({ onSignUpClick }: SignInFormProps) => {
  
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -13,29 +17,25 @@ const SignInForm = () => {
   const [showResetModal, setShowResetModal] = useState(false);
   const router = useRouter();
 
-  // useEffect hook to check for an existing token on component mount.
-  // If a token is found, it means the user is already logged in, so redirect to '/home'.
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       router.push('/home');
     }
-  }, [router]); // Dependency array ensures this effect runs only when router object changes.
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
-    setError(''); // Clear any previous error messages.
+    setError('');
     setLoading(true); 
 
     const API_URL = 'https://ecommerce.routemisr.com/api/v1/auth/signin';
 
     try {
-      
       const res = await axios.post(
         API_URL,
         {
@@ -43,15 +43,14 @@ const SignInForm = () => {
           password: formData.password,
         },
         {
-          headers: { 'Content-Type': 'application/json' }, // Specify content type as JSON.
+          headers: { 'Content-Type': 'application/json' },
         }
       );
       console.log('API Response:', res);
 
       const token = res.data.token;
-      localStorage.setItem('token', token); // Store the authentication token in local storage.
+      localStorage.setItem('token', token);
       router.push('/home'); 
-
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -61,52 +60,69 @@ const SignInForm = () => {
         setError('An unexpected error occurred. Please try again.');
       }
     } finally {
-      setLoading(false); // Always reset loading state after the API call completes (success or failure).
+      setLoading(false);
     }
   };
 
   return (
-    
-    <section className="w-1/2 p-12 sm:p-8 xs:p-4 flex items-center justify-center bg-white px-4 py-12">
-      <div>
-        {/* Sign-in title. */}
-        <h2 className="text-3xl sm:text-2xl font-bold text-red-500 mb-6 text-center">
+    <section className="w-full md:w-1/2 p-6 sm:p-8 md:p-12 flex items-center justify-center bg-white">
+      <div className="w-full max-w-md">
+        {/* Sign-in title */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#C0D6E4] mb-6 text-center">
           Sign In
         </h2>
 
-        {/* Error message display area. */}
+        {/* Error message */}
         {error && (
           <div className="mb-4 text-red-600 font-medium text-sm text-center">
             {error}
           </div>
         )}
 
-        {/* The sign-in form. */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Social media sign-in buttons section. */}
-            <div className="flex items-center justify-center space-x-4">
-            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Google">
-              <FaGoogle className="w-5 h-5 sm:w-4 sm:h-4 text-[#DB4437]" />
+        {/* Sign-in form */}
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          {/* Social media buttons */}
+          <div className="flex items-center justify-center space-x-3 sm:space-x-4">
+            <button 
+              type="button"
+              className="p-2 sm:p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" 
+              aria-label="Sign in with Google"
+            >
+              <FaGoogle className="w-4 h-4 sm:w-5 sm:h-5 text-[#DB4437]" />
             </button>
-            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with Facebook">
-              <FaFacebookF className="w-5 h-5 sm:w-4 sm:h-4 text-[#4267B2]" />
+            <button 
+              type="button"
+              className="p-2 sm:p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" 
+              aria-label="Sign in with Facebook"
+            >
+              <FaFacebookF className="w-4 h-4 sm:w-5 sm:h-5 text-[#4267B2]" />
             </button>
-            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with LinkedIn">
-              <FaLinkedinIn className="w-5 h-5 sm:w-4 sm:h-4 text-[#0077B5]" />
+            <button 
+              type="button"
+              className="p-2 sm:p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" 
+              aria-label="Sign in with LinkedIn"
+            >
+              <FaLinkedinIn className="w-4 h-4 sm:w-5 sm:h-5 text-[#0077B5]" />
             </button>
-            <button className="p-3 sm:p-2 border rounded-full hover:bg-gray-100 transition cursor-pointer" aria-label="Sign in with GitHub">
-              <FaGithub className="w-5 h-5 sm:w-4 sm:h-4 text-black" />
+            <button 
+              type="button"
+              className="p-2 sm:p-3 border rounded-full hover:bg-gray-100 transition cursor-pointer" 
+              aria-label="Sign in with GitHub"
+            >
+              <FaGithub className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
             </button>
           </div>
-          <div className="flex items-center justify-center text-gray-500">
+
+          {/* Divider */}
+          <div className="flex items-center justify-center text-gray-500 text-sm">
             <hr className="flex-grow border-t border-gray-300" />
-            <span className="mx-4">or use your account?</span>
+            <span className="mx-3 sm:mx-4 whitespace-nowrap">or use your account?</span>
             <hr className="flex-grow border-t border-gray-300" />
           </div>
 
-          {/* Email input field. */}
+          {/* Email input */}
           <div>
-            <label className="block text-sm text-text-primary mb-1" htmlFor="email">
+            <label className="block text-sm text-gray-700 mb-1" htmlFor="email">
               Email
             </label>
             <input
@@ -115,14 +131,13 @@ const SignInForm = () => {
               type="email"
               required
               onChange={handleChange}
-              // Apply custom focus ring color.
-              className="w-full px-4 py-2 sm:px-3 sm:py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
+              className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C0D6E4]"
             />
           </div>
 
-          {/* Password input field. */}
+          {/* Password input */}
           <div>
-            <label className="block text-sm text-text-primary mb-1" htmlFor="password">
+            <label className="block text-sm text-gray-700 mb-1" htmlFor="password">
               Password
             </label>
             <input
@@ -131,41 +146,58 @@ const SignInForm = () => {
               type="password"
               required
               onChange={handleChange}
-              className="w-full px-4 py-2 sm:px-3 sm:py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-accent"
+              className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C0D6E4]"
             />
           </div>
 
-          {/* Forgot password link. */}
+          {/* Forgot password */}
           <button
+            type="button"
             onClick={() => setShowResetModal(true)}
-            className="text-sm text-[#C0D6E4] hover:underline text-center block"
+            className="text-sm text-[#C0D6E4] hover:underline text-center block w-full"
           >
             Forgot your password?
           </button>
 
-          {/* Submit button for sign-in. */}
+          {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-[#A47864] text-white py-2 sm:py-1.5 rounded-lg font-semibold  text-base sm:text-sm hover:bg-[#C0D6E4] hover:text-white cursor-pointer transition transition-colors flex justify-center disabled:bg-opacity-70 disabled:cursor-not-allowed"
-            disabled={loading} // Disable button when loading.
+            className="w-full bg-[#A47864] text-white py-2 sm:py-2.5 rounded-lg font-semibold text-sm sm:text-base hover:bg-[#C0D6E4] hover:text-white cursor-pointer transition-colors flex justify-center items-center disabled:bg-opacity-70 disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            {loading ? 'Loading...' : 'Log In'} {/* Button text changes based on loading state. */}
+            {loading ? 'Loading...' : 'Log In'}
           </button>
-          <button
-                    onClick={() => router.push('/home')}
-                    className="text-sm text-gray-500 underline mt-4 cursor-pointer"
-                  >
-                    Skip for now
-                  </button>
 
-                  {/* Modal */}
-              {showResetModal && (
-                <ResetPasswordModal onClose={() => setShowResetModal(false)} />
-              )}
-              
-               
-       
+          {/* Skip button */}
+          <button
+            type="button"
+            onClick={() => router.push('/home')}
+            className="text-sm text-gray-500 hover:underline text-center block w-full cursor-pointer"
+          >
+            Skip for now
+          </button>
+
+          {/*Sign Up button show on mobile only */}
+          {onSignUpClick && (
+            <div className="md:hidden pt-4 border-t border-gray-200">
+              <p className="text-center text-sm text-gray-600 mb-3">
+                Don't have an account?
+              </p>
+              <button
+                type="button"
+                onClick={onSignUpClick}
+                className="w-full bg-white border-2 border-[#A47864] text-[#A47864] font-semibold py-2 rounded-lg hover:bg-[#A47864] hover:text-white cursor-pointer transition-colors"
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
         </form>
+
+        {/* Reset Password Modal */}
+        {showResetModal && (
+          <ResetPasswordModal onClose={() => setShowResetModal(false)} />
+        )}
       </div>
     </section>
   );
