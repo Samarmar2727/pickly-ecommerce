@@ -32,6 +32,18 @@ clip-path: polygon(0 0, 100% 0, 100% 90%, 50% 100%, 0 90%);
 
 
 
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
 
 
 

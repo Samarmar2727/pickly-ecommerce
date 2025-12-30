@@ -36,8 +36,7 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const { cart, isLoading } = useCart();
-  const numberOfItems = cart?.numOfCartItems ?? 0;
-
+  const numberOfItems = cart?.products?.reduce((acc, item) => acc + item.count, 0) ?? 0;
   const { wishlist } = useWishlist();
   const wishlistCount = wishlist?.products?.length ?? 0;
 
@@ -146,8 +145,9 @@ export default function Header() {
               type="button"
             >
               <ShoppingCartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#C0D6E4] font-bold cursor-pointer hover:text-[#faebd7] transition" />
+              
               {!isLoading && numberOfItems > 0 && (
-                <span className="cart-count absolute -top-1.5 -right-2 bg-[#C0D6E4] text-[#A47864] text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                <span className="cart-count absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                   {numberOfItems}
                 </span>
               )}

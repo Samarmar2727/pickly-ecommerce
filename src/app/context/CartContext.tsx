@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
 import axios from 'axios';
-import { useAuth } from './AuthContext';  // استيراد هوك الأوث
+import { useAuth } from './AuthContext'; 
  
 //1. (Types)
 
@@ -42,12 +42,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { isLoggedIn, token } = useAuth();  // جلب الحالة والتوكن من AuthContext
+  const { isLoggedIn, token } = useAuth();  
 
   const API_URL = 'https://ecommerce.routemisr.com/api/v1/cart';
 
   const getCart = useCallback(async () => {
-    if (!token) return; // إذا ما فيش توكن مش محتاج تجيب الكارت
+    if (!token) return; 
 
     try {
       setIsLoading(true);
