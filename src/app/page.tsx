@@ -17,12 +17,12 @@ export default function OnboardingPage() {
   return (
     <>
       {/* Header Section */}
-      <div className="relative w-full h-20 text-white">
+     <div className="hidden md:flex relative w-full h-20 text-white justify-center items-center">
         {/* Background with clip-path */}
         <div className="absolute inset-0 clip-wave bg-gradient-to-r from-[#A47864] via-[#C0D6E4] to-[#A47864] z-0"></div>
 
         {/* Text on top */}
-        <div className="relative z-10 flex items-center justify-center h-full px-4">
+        <div className=" z-10 text-center h-full px-4">
           <TypingHeader messages={messages} />
         </div>
       </div>
