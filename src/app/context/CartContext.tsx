@@ -1,12 +1,19 @@
 "use client";
 
-import { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
-import axios from 'axios';
-import { useAuth } from './AuthContext'; 
- 
-//1. (Types)
+import {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+  useCallback,
+} from "react";
 
-interface ProductInCart {
+import axios from "axios";
+import { useAuth } from "./AuthContext";
+
+/* interfaces */
+export interface ProductInCart {
   count: number;
   _id: string;
   product: {
@@ -15,39 +22,68 @@ interface ProductInCart {
     price: number;
     _id: string;
   };
+  price: number;
 }
 
-interface CartData {
+export interface CartData {
   _id: string;
   cartOwner: string;
   products: ProductInCart[];
   totalCartPrice: number;
   numOfCartItems: number;
 }
+export interface Address {
+  _id: string;
+  name: string;
+  details: string;
+  phone: string;
+  city: string;
+}
 
+export type PaymentMethod = "cash" | "card";
+
+/* 3️⃣ Context Type */
 interface CartContextType {
+  /* Cart */
   cart: CartData | null;
   isLoading: boolean;
-   isLoggedIn: boolean; 
+  isLoggedIn: boolean;
+
   addToCart: (productId: string) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateProductQuantity: (productId: string, count: number) => Promise<void>;
   getCart: () => Promise<void>;
-}
 
+  addresses: Address[];
+  setAddresses: React.Dispatch<React.SetStateAction<Address[]>>;
+
+  selectedAddress: Address | null;
+  setSelectedAddress: React.Dispatch<React.SetStateAction<Address | null>>;
+
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<PaymentMethod>>;
+}
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+/* Provider */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { isLoggedIn, token } = useAuth();  
+  /* STATES */
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
-  const API_URL = 'https://ecommerce.routemisr.com/api/v1/cart';
+  const { isLoggedIn, token } = useAuth();
+
+  const API_URL = "https://ecommerce.routemisr.com/api/v1/cart";
+
+  /* Cart Logic  */
 
   const getCart = useCallback(async () => {
-    if (!token) return; 
+    if (!token) return;
 
     try {
       setIsLoading(true);
@@ -55,9 +91,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         headers: { token },
       });
       setCart(response.data.data);
-      console.log('Cart fetched:', response.data.data);
     } catch (error) {
-      console.error('Failed to fetch cart:', error);
+      console.error("Failed to fetch cart:", error);
       setCart(null);
     } finally {
       setIsLoading(false);
@@ -65,10 +100,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [token]);
 
   const addToCart = async (productId: string) => {
-    if (!token) {
-      console.warn('User must be logged in to add to cart');
-      return;
-    }
+    if (!token) return;
 
     try {
       const response = await axios.post(
@@ -77,9 +109,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         { headers: { token } }
       );
       setCart(response.data.data);
-      console.log('Product added to cart:', response.data.data);
     } catch (error) {
-      console.error('Failed to add product to cart:', error);
+      console.error("Failed to add product:", error);
     }
   };
 
@@ -91,9 +122,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         headers: { token },
       });
       setCart(response.data.data);
-      console.log('Product removed from cart:', response.data.data);
     } catch (error) {
-      console.error('Failed to remove product from cart:', error);
+      console.error("Failed to remove product:", error);
     }
   };
 
@@ -107,9 +137,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         { headers: { token } }
       );
       setCart(response.data.data);
-      console.log('Product quantity updated:', response.data.data);
     } catch (error) {
-      console.error('Failed to update product quantity:', error);
+      console.error("Failed to update quantity:", error);
     }
   };
 
@@ -132,6 +161,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         updateProductQuantity,
         getCart,
+        addresses,
+        setAddresses,
+        selectedAddress,
+        setSelectedAddress,
+        paymentMethod,
+        setPaymentMethod,
       }}
     >
       {children}
@@ -139,10 +174,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/* ===================== */
+/* 5️⃣ Hook */
+/* ===================== */
+
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };

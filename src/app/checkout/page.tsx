@@ -1,278 +1,361 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import { useCart } from '../context/CartContext';
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import Image from "next/image";
+import { FaTrash, FaEdit, FaTimes, FaCheckCircle } from "react-icons/fa";
 
-// Interfaces
-interface Address {
-  _id?: string;
-  name: string;
-  details: string;
-  phone: string;
-  city: string;
-}
+import { useCart } from "../context/CartContext";
+import type { Address, PaymentMethod } from "../context/CartContext";
 
-const CheckoutPage: React.FC = () => {
+const CheckoutPage = () => {
   const router = useRouter();
-  const { cart, isLoading: isCartLoading } = useCart();
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [newAddress, setNewAddress] = useState<Address>({ name: '', details: '', phone: '', city: '' });
-  const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
-  const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
-  
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  // API Calls & Handlers
+  const {
+    cart,
+    isLoading,
+    addresses,
+    setAddresses,
+    selectedAddress,
+    setSelectedAddress,
+    paymentMethod,
+    setPaymentMethod,
+  } = useCart();
+
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [processingType, setProcessingType] = useState<
+    "cash" | "online" | null
+  >(null);
+
+  const [formData, setFormData] = useState<Omit<Address, "_id">>({
+    name: "",
+    details: "",
+    phone: "",
+    city: "",
+  });
+
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  /* ================= Fetch Addresses ================= */
   const getUserAddresses = useCallback(async () => {
-    try {
-      const response = await axios.get('https://ecommerce.routemisr.com/api/v1/addresses', {
-        headers: { token: token },
-      });
-      setAddresses(response.data.data);
-      if (response.data.data.length > 0) {
-        setSelectedAddress(response.data.data[0]);
-        setShowAddressForm(false);
-      } else {
-        setShowAddressForm(true);
-      }
-    } catch (error) {
-      console.error('Error fetching addresses:', error);
-      setShowAddressForm(true);
-    }
-  }, [token]);
+    if (!token) return;
 
-  const createCashOrder = async () => {
-    if (!selectedAddress || !cart) return;
-    setIsProcessingOrder(true);
     try {
-      const _response = await axios.post(`https://ecommerce.routemisr.com/api/v1/orders/${cart._id}`, { shippingAddress: selectedAddress }, {
-        headers: { token: token },
-      });
-      alert('Cash Order Created Successfully!');
-      router.push('/order-confirmation');
-    } catch (error) {
-      console.error('Error creating cash order:', error);
-    } finally {
-      setIsProcessingOrder(false);
-    }
-  };
-
-  const createOnlineCheckoutSession = async () => {
-    if (!selectedAddress || !cart) return;
-    setIsProcessingOrder(true);
-    try {
-      const response = await axios.post(
-        `https://ecommerce.routemisr.com/api/v1/orders/checkout-session/${cart._id}?url=${window.location.origin}/order-confirmation`,
-        { shippingAddress: selectedAddress },
-        { headers: { token: token } }
+      const res = await axios.get(
+        "https://ecommerce.routemisr.com/api/v1/addresses",
+        { headers: { token } }
       );
-      if (response.data.session.url) {
-        window.location.href = response.data.session.url;
+
+      setAddresses(res.data.data);
+      if (res.data.data.length > 0) {
+        setSelectedAddress(res.data.data[0]);
       }
     } catch (error) {
-      console.error('Error creating online session:', error);
-    } finally {
-      setIsProcessingOrder(false);
+      console.error(error);
     }
-  };
+  }, [token, setAddresses, setSelectedAddress]);
 
-  const addNewAddressHandler = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('https://ecommerce.routemisr.com/api/v1/addresses', newAddress, {
-        headers: { token: token },
-      });
-      const addedAddress = response.data.data;
-      setSelectedAddress(addedAddress);
-      setAddresses([...addresses, addedAddress]);
-      setShowAddressForm(false);
-    } catch (error) {
-      console.error('Error adding new address:', error);
-    }
-  };
-
-  // --- Effects ---
   useEffect(() => {
     getUserAddresses();
   }, [getUserAddresses]);
 
-  if (isCartLoading) {
+  /* ================= Address Handlers ================= */
+  const submitAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+
+    try {
+      if (editingAddress) {
+        await axios.put(
+          `https://ecommerce.routemisr.com/api/v1/addresses/${editingAddress._id}`,
+          formData,
+          { headers: { token } }
+        );
+
+        toast.success("Address updated successfully");
+      } else {
+        await axios.post(
+          "https://ecommerce.routemisr.com/api/v1/addresses",
+          formData,
+          { headers: { token } }
+        );
+
+        toast.success("Address added successfully");
+      }
+
+      resetForm();
+      getUserAddresses();
+    } catch (error) {
+      toast.error("Failed to save address");
+      console.error(error);
+    }
+  };
+
+  const deleteAddress = async (id: string) => {
+    if (!token) return;
+
+    try {
+      await axios.delete(
+        `https://ecommerce.routemisr.com/api/v1/addresses/${id}`,
+        { headers: { token } }
+      );
+
+      toast.success("Address deleted");
+      getUserAddresses();
+    } catch {
+      toast.error("Failed to delete address");
+    }
+  };
+
+  const startEdit = (address: Address) => {
+    setEditingAddress(address);
+    setFormData({
+      name: address.name,
+      details: address.details,
+      phone: address.phone,
+      city: address.city,
+    });
+    setShowAddressForm(true);
+  };
+
+  const resetForm = () => {
+    setFormData({ name: "", details: "", phone: "", city: "" });
+    setEditingAddress(null);
+    setShowAddressForm(false);
+  };
+
+  /* ================= Orders ================= */
+  const createCashOrder = async () => {
+    if (!cart || !selectedAddress) return;
+    setProcessingType("cash");
+
+    try {
+      await axios.post(
+        `https://ecommerce.routemisr.com/api/v1/orders/${cart._id}`,
+        { shippingAddress: selectedAddress },
+        { headers: { token } }
+      );
+
+      toast.success("Order placed successfully");
+      router.push("/order");
+    } catch {
+      toast.error("Failed to create order");
+    } finally {
+      setProcessingType(null);
+    }
+  };
+
+  const createOnlineOrder = async () => {
+    if (!cart || !selectedAddress) return;
+    setProcessingType("online");
+
+    try {
+      const res = await axios.post(
+        `https://ecommerce.routemisr.com/api/v1/orders/checkout-session/${cart._id}?url=${window.location.origin}/order`,
+        { shippingAddress: selectedAddress },
+        { headers: { token } }
+      );
+
+      window.location.href = res.data.session.url;
+    } catch {
+      toast.error("Payment failed");
+    } finally {
+      setProcessingType(null);
+    }
+  };
+
+  /* ================= UI STATES ================= */
+  if (isLoading)
     return (
-      <div className="flex items-center justify-center h-screen bg-[#faebd7]">
-        <div className="text-center text-[#A47864] font-bold text-2xl">
-          Loading cart details...
-        </div>
+      <div className="h-screen flex items-center justify-center">
+        Loading...
       </div>
     );
-  }
 
-  if (!cart || cart.products.length === 0) {
+  if (!cart || cart.products.length === 0)
     return (
-      <div className="flex items-center justify-center h-screen bg-[#faebd7]">
-        <div className="text-center text-[#A47864] font-bold text-2xl">
-          Your cart is empty. Please add some products to checkout.
-        </div>
+      <div className="h-screen flex items-center justify-center">
+        Cart is empty
       </div>
     );
-  }
 
-  // Rendering
   return (
- <div className="min-h-screen p-6 bg-[#faebd7]">
-  <div className="container mx-auto max-w-3xl">
-    <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-[#A47864] mb-12">
-      Checkout
-    </h1>
-
-    {/* --- Shipping Details --- */}
-    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
-      <h2 className="text-2xl font-semibold text-[#A47864] mb-6">Shipping Details</h2>
-      {showAddressForm ? (
-        <form onSubmit={addNewAddressHandler} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Name (Home, Office...)"
-            value={newAddress.name}
-            onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })}
-            required
-            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
-          />
-          <input
-            type="text"
-            placeholder="Street, Building, Floor..."
-            value={newAddress.details}
-            onChange={(e) => setNewAddress({ ...newAddress, details: e.target.value })}
-            required
-            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
-          />
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            value={newAddress.phone}
-            onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-            required
-            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
-          />
-          <input
-            type="text"
-            placeholder="City"
-            value={newAddress.city}
-            onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-            required
-            className="w-full p-3 border border-[#A47864] rounded-xl bg-[#f9f9f9] text-[#8f6551] placeholder-[#C0D6E4] focus:outline-none focus:ring-2 focus:ring-[#A47864] transition"
-          />
-          <button
-            type="submit"
-            className="w-full bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold"
-          >
-            Save Address
-          </button>
-        </form>
-      ) : (
-        <div className="space-y-3">
-          {addresses.map((address) => (
-            <label
-              key={address._id}
-              className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition hover:shadow-md ${
-                selectedAddress?._id === address._id
-                  ? 'border-[#A47864] shadow-lg bg-[#f9f9f9]'
-                  : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="shipping-address"
-                  checked={selectedAddress?._id === address._id}
-                  onChange={() => setSelectedAddress(address)}
-                  className="accent-[#A47864]"
-                />
-                <div className="text-[#8f6551]">
-                  <p className="font-semibold">{address.name}</p>
-                  <p className="text-sm">{address.details}, {address.city}</p>
-                  <p className="text-sm">{address.phone}</p>
-                </div>
-              </div>
-            </label>
-          ))}
-          <button
-            onClick={() => setShowAddressForm(true)}
-            className="mt-4 text-[#A47864] hover:underline font-medium"
-          >
-            + Add New Address
-          </button>
+    <div className="min-h-screen bg-white p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* ================= Stepper ================= */}
+        <div className="flex items-center justify-center gap-4 font-semibold text-sm md:text-base">
+          <span className="flex items-center gap-2 text-green-500">
+            <FaCheckCircle /> Cart
+          </span>
+          <span className="px-3 py-1 rounded-full bg-[#F3E8E0] text-[#A47864]">
+            Checkout
+          </span>
+          <span className="text-gray-400">Confirmation</span>
         </div>
-      )}
-    </div>
 
-    {/* --- Order Summary --- */}
-    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
-      <h2 className="text-2xl font-semibold text-[#A47864] mb-6">Order Summary</h2>
-      <div className="divide-y divide-gray-200">
-        {cart.products.map((item) => (
-          <div key={item.product._id} className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-4">
-              <img
-                src={item.product.imageCover}
-                alt={item.product.title}
-                className="w-16 h-16 object-cover rounded-lg shadow"
-              />
-              <div className="flex flex-col">
-                <span className="font-semibold text-[#A47864]">{item.product.title}</span>
-                <span className="text-sm text-gray-500">x{item.count}</span>
+        {/* ================= Addresses ================= */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
+
+          {showAddressForm ? (
+            <form onSubmit={submitAddress} className="space-y-3">
+              {Object.entries(formData).map(([key, value]) => (
+                <input
+                  key={key}
+                  value={value}
+                  placeholder={key}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, [key]: e.target.value }))
+                  }
+                  className="w-full border p-3 rounded"
+                  required
+                />
+              ))}
+
+              <div className="flex gap-3">
+                <button className="flex-1 bg-[#A47864] text-white py-3 rounded">
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-red-500"
+                >
+                  <FaTimes />
+                </button>
               </div>
-            </div>
-            <div className="flex flex-col items-end">
-              {item.product.discount ? (
-                <>
-                  <span className="text-sm line-through text-gray-400">
-                    {(item.product.price).toFixed(2)} $
-                  </span>
-                  <span className="font-semibold text-[#A47864]">
-                    {(item.product.price * (1 - item.product.discount / 100) * item.count).toFixed(2)} EGP
-                  </span>
-                </>
-              ) : (
+            </form>
+          ) : (
+            <>
+              {addresses.map((address) => (
+                <div
+                  key={address._id}
+                  onClick={() => setSelectedAddress(address)}
+                  className={`border rounded-xl p-4 mb-3 cursor-pointer ${
+                    selectedAddress?._id === address._id
+                      ? "border-[#A47864]"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <p className="font-semibold">{address.name}</p>
+                  <p className="text-sm">{address.details}</p>
+                  <p className="text-sm">{address.city}</p>
+                  <p className="text-sm">{address.phone}</p>
+
+                  <div className="flex gap-3 mt-2">
+                    <FaEdit
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEdit(address);
+                      }}
+                    />
+                    <FaTrash
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteAddress(address._id);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <button
+                onClick={() => setShowAddressForm(true)}
+                className="text-[#A47864] font-semibold"
+              >
+                + Add new address
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Order Summary */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-[#A47864] mb-4">
+            Order Summary
+          </h2>
+
+          <div className="space-y-4">
+            {cart.products.map((item) => (
+              <div
+                key={item.product._id}
+                className="flex justify-between items-center border-b border-gray-200 pb-2"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                    <Image
+                      src={item.product.imageCover}
+                      alt={item.product.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-medium text-[#A47864]">
+                      {item.product.title}
+                    </p>
+                    <p className="text-sm text-[#8f6551]">
+                      Quantity: {item.count}
+                    </p>
+                  </div>
+                </div>
                 <span className="font-semibold text-[#A47864]">
                   {(item.price * item.count).toFixed(2)} $
                 </span>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="mt-6 pt-4 border-t-2 border-gray-200 flex justify-between items-center">
-        <span className="text-xl font-bold text-[#A47864]">Total:</span>
-        <span className="text-2xl font-bold text-[#A47864]">{cart.totalCartPrice} $</span>
+
+          <div className="mt-6 pt-4 border-t-2 border-[#A47864] flex justify-between items-center">
+            <span className="font-bold text-[#A47864] text-xl">Total:</span>
+            <span className="font-bold text-[#A47864] text-2xl">
+              {cart.totalCartPrice} $
+            </span>
+          </div>
+        </div>
+
+        {/* ================= Payment ================= */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <div className="flex gap-4 mb-4">
+            {(["cash", "card"] as PaymentMethod[]).map((method) => (
+              <button
+                key={method}
+                onClick={() => setPaymentMethod(method)}
+                className={`flex-1 border p-4 rounded ${
+                  paymentMethod === method
+                    ? "border-[#A47864]"
+                    : "border-gray-300"
+                }`}
+              >
+                {method}
+              </button>
+            ))}
+          </div>
+          <div>
+            <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+            <p className="font-semibold text-[#A47864]">
+              {" "}
+              Selected Payment:{" "}
+              {paymentMethod === "cash" ? "Cash on Delivery" : "Card / Online"}
+            </p>
+          </div>
+
+          <button
+            disabled={!selectedAddress || processingType !== null}
+            onClick={
+              paymentMethod === "cash" ? createCashOrder : createOnlineOrder
+            }
+            className="w-full bg-[#A47864] text-white py-3 rounded"
+          >
+            {processingType ? "Processing..." : "Confirm Order"}
+          </button>
+        </div>
       </div>
     </div>
-
-    {/* --- Payment Method --- */}
-    <div className="bg-white p-6 rounded-2xl shadow-lg">
-      <h2 className="text-2xl font-semibold text-[#A47864] mb-4">Payment Method</h2>
-      <div className="flex flex-col sm:flex-row gap-4">
-        <button
-          onClick={createCashOrder}
-          disabled={!selectedAddress || isProcessingOrder}
-          className="flex-1 bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold disabled:bg-gray-400"
-        >
-          {isProcessingOrder ? 'Processing...' : 'Pay on Delivery'}
-        </button>
-        <button
-          onClick={createOnlineCheckoutSession}
-          disabled={!selectedAddress || isProcessingOrder}
-          className="flex-1 bg-[#A47864] text-white py-3 rounded-xl shadow-lg hover:bg-[#8f6551] transition font-semibold disabled:bg-gray-400"
-        >
-          {isProcessingOrder ? 'Processing...' : 'Pay Online'}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
   );
 };
 

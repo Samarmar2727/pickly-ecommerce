@@ -118,6 +118,7 @@ const Brands = () => {
                       alt={brand.name}
                       fill
                       className="object-contain rounded-full"
+
                     />
                   </div>
                 </div>
