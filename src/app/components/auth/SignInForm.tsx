@@ -182,7 +182,7 @@ const SignInForm = ({ onSignUpClick }: SignInFormProps) => {
           {onSignUpClick && (
             <div className="md:hidden pt-4 border-t border-gray-200">
               <p className="text-center text-sm text-gray-600 mb-3">
-                Don't have an account?
+                Don&apos;t have an account?
               </p>
               <button
                 type="button"

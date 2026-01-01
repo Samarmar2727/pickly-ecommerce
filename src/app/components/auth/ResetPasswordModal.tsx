@@ -1,39 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-export default function ResetPasswordModal({ onClose }: { onClose: () => void }) {
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [message, setMessage] = useState('');
+export default function ResetPasswordModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://ecommerce.routemisr.com/api/v1/auth/resetPassword', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          newPassword,
-        }),
-      });
+      const response = await fetch(
+        "https://ecommerce.routemisr.com/api/v1/auth/resetPassword",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            newPassword,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('Password has been reset successfully ✅');
+        setMessage("Password has been reset successfully ✅");
         setTimeout(() => {
-          onClose(); 
+          onClose();
         }, 1500);
       } else {
-        setMessage(data.message || 'Something went wrong ❌');
+        setMessage(data.message || "Something went wrong ❌");
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      setMessage('Network error. Please try again later ❌');
+      setMessage("Network error. Please try again later ❌");
     } finally {
       setLoading(false);
     }
@@ -42,13 +50,15 @@ export default function ResetPasswordModal({ onClose }: { onClose: () => void })
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-md relative">
-         <button
-            className="absolute top-3 right-3 px-2 py-1 text-lg text-gray-600 hover:text-red-600 bg-transparent hover:bg-gray-200 rounded-md transition duration-200"
-            onClick={onClose}
-          >
-            &times;
-          </button>
-        <h2 className="text-xl font-bold mb-4 text-center">Reset Your Password</h2>
+        <button
+          className="absolute top-3 right-3 px-2 py-1 text-lg text-gray-600 hover:text-red-600 bg-transparent hover:bg-gray-200 rounded-md transition duration-200"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Reset Your Password
+        </h2>
 
         <input
           type="email"
@@ -75,7 +85,7 @@ export default function ResetPasswordModal({ onClose }: { onClose: () => void })
           onClick={handleResetPassword}
           disabled={loading}
         >
-          {loading ? 'Resetting...' : 'Reset Password'}
+          {loading ? "Resetting..." : "Reset Password"}
         </button>
       </div>
     </div>
